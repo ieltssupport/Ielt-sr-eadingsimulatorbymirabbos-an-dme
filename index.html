@@ -11,7 +11,14 @@
       background-color: #0a1f44;
       color: #fff;
     }
-    .container {
+    #uploadContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    #pdfContainer {
       display: flex;
       height: 100vh;
       overflow: hidden;
@@ -38,16 +45,6 @@
       cursor: pointer;
       font-size: 16px;
     }
-    #uploadContainer {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-    }
-    #history {
-      padding: 20px;
-    }
     textarea {
       width: 90%;
       height: 100px;
@@ -70,18 +67,11 @@
   <span id="timer">60:00</span>
 </div>
 
-<div class="container" id="pdfContainer" style="display:none;">
-  <div class="half" id="leftPane"></div>
-  <div class="half" id="rightPane"></div>
+<div id="pdfContainer" style="display:none;">
+  <iframe id="leftPDF" class="half"></iframe>
+  <iframe id="rightPDF" class="half"></iframe>
 </div>
 
-<div id="history" style="display:none;">
-  <h2>История тестов</h2>
-  <ul id="fileHistory"></ul>
-  <button onclick="startNewTest()">Начать новый тест</button>
-</div>
-
-<script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
 <script>
   let timerInterval;
   let timeLeft = 60 * 60; // 60 minutes
@@ -104,57 +94,25 @@
     clearInterval(timerInterval);
     document.getElementById('pdfContainer').style.display = 'none';
     document.getElementById('controls').style.display = 'none';
-    document.getElementById('history').style.display = 'block';
-  }
-
-  function startNewTest() {
-    document.getElementById('history').style.display = 'none';
-    document.getElementById('uploadContainer').style.display = 'flex';
-    timeLeft = 60 * 60;
+    alert("Тест завершён!");
   }
 
   document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file && file.type === 'application/pdf') {
-      const fileReader = new FileReader();
-      fileReader.onload = function() {
-        const typedarray = new Uint8Array(this.result);
-        showPDF(typedarray, 'leftPane');
-        showPDF(typedarray, 'rightPane');
-        document.getElementById('uploadContainer').style.display = 'none';
-        document.getElementById('pdfContainer').style.display = 'flex';
-        document.getElementById('controls').style.display = 'flex';
-        startTimer();
-        addToHistory(file.name);
-      };
-      fileReader.readAsArrayBuffer(file);
+      const fileURL = URL.createObjectURL(file);
+      document.getElementById('leftPDF').src = fileURL;
+      document.getElementById('rightPDF').src = fileURL;
+      document.getElementById('uploadContainer').style.display = 'none';
+      document.getElementById('pdfContainer').style.display = 'flex';
+      document.getElementById('controls').style.display = 'flex';
+      startTimer();
+    } else {
+      alert("Пожалуйста, выберите PDF-файл.");
     }
   });
 
-  function showPDF(data, containerId) {
-    pdfjsLib.getDocument({data: data}).promise.then(pdf => {
-      for (let i = 1; i <= pdf.numPages; i++) {
-        pdf.getPage(i).then(page => {
-          const scale = 1.5;
-          const viewport = page.getViewport({ scale: scale });
-          const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-          page.render({canvasContext: context, viewport: viewport});
-          document.getElementById(containerId).appendChild(canvas);
-        });
-      }
-    });
-  }
-
   document.getElementById('stopTest').addEventListener('click', stopTest);
-
-  function addToHistory(fileName) {
-    const li = document.createElement('li');
-    li.textContent = fileName;
-    document.getElementById('fileHistory').appendChild(li);
-  }
 
   document.getElementById('addComment').addEventListener('click', () => {
     const textarea = document.createElement('textarea');
@@ -164,6 +122,7 @@
 
 </body>
 </html>
+
 
 
 
