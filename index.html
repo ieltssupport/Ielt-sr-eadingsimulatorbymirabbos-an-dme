@@ -225,13 +225,14 @@
     }
 
     function addComment(event) {
+        event.preventDefault(); // предотвращает scroll
         const textDiv = document.createElement('div');
         textDiv.className = 'comment-text';
         textDiv.contentEditable = "true";
         textDiv.style.top = (event.offsetY - 10) + 'px';
         textDiv.style.left = (event.offsetX - 10) + 'px';
         pdfQuestionsViewer.appendChild(textDiv);
-        textDiv.focus();
+        setTimeout(() => textDiv.focus(), 0); // гарантируем, что фокус не триггерит scroll
     }
 
     function addTestToHistory(name) {
