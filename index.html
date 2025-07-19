@@ -1,8 +1,17 @@
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IELTS Reading Simulator</title>
     <style>
         html, body {
@@ -36,13 +45,13 @@
         }
         .editable-text {
             position: absolute;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #000;
-            font-size: 16px;
             min-width: 50px;
             min-height: 20px;
+            background-color: rgba(255,255,255,0.6);
+            border: 1px dashed #1a73e8;
+            padding: 2px 5px;
+            border-radius: 4px;
+            cursor: text;
         }
         #timer {
             position: fixed;
@@ -107,7 +116,7 @@
 <header>IELTS Reading Simulator</header>
 
 <div id="uploadSection">
-    <input type="file" id="fileInput" accept="application/pdf" />
+    <input type="file" id="fileInput" accept="application/pdf">
     <p style="font-size: 18px;">Загрузите ваш IELTS PDF</p>
     <button onclick="startTest()">Старт</button>
 </div>
@@ -121,7 +130,7 @@
 <div id="pdfContainer" style="display:none;">
     <div class="pdf-viewer" id="pdfTextViewer"></div>
     <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addEditableText(event)">
-        <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы начать писать</p>
+        <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст</p>
     </div>
 </div>
 
@@ -225,14 +234,18 @@
     }
 
     function addEditableText(event) {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'editable-text';
-        input.style.top = (event.offsetY - 10) + 'px';
-        input.style.left = (event.offsetX - 10) + 'px';
-        input.placeholder = '';
-        pdfQuestionsViewer.appendChild(input);
-        input.focus();
+        const rect = pdfQuestionsViewer.getBoundingClientRect();
+        const x = event.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
+        const y = event.clientY - rect.top + pdfQuestionsViewer.scrollTop;
+
+        const editable = document.createElement('div');
+        editable.className = 'editable-text';
+        editable.contentEditable = true;
+        editable.style.left = x + 'px';
+        editable.style.top = y + 'px';
+        pdfQuestionsViewer.appendChild(editable);
+
+        editable.focus();
     }
 
     function addTestToHistory(name) {
@@ -244,11 +257,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
