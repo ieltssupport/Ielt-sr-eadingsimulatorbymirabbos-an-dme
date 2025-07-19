@@ -1,123 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>IELTS Reading Simulator</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  #controls {
-    text-align: center;
-    padding: 10px;
-    background: #f0f0f0;
-    border-bottom: 1px solid #ccc;
-  }
-  #controls button {
-    padding: 10px 20px;
-    margin: 0 10px;
-    font-size: 16px;
-    cursor: pointer;
-  }
-  #main {
-    display: flex;
-    flex: 1;
-  }
-  .pdf-container {
-    position: relative;
-    flex: 1;
-    height: 100%;
-    border: none;
-  }
-  embed {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-  .note-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    color: #FF0000;
-    font-size: 18px;
-    outline: none;
-    z-index: 10;
-    cursor: text;
-    overflow: auto;
-    pointer-events: none; /* Disable editing until Start Test */
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IELTS Reading Simulator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #0a1f44;
+      color: #fff;
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .half {
+      flex: 1;
+      border: 1px solid #333;
+      overflow: auto;
+    }
+    #controls {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+    }
+    button {
+      padding: 10px 20px;
+      background: #1e90ff;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #uploadContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    #history {
+      padding: 20px;
+    }
+    textarea {
+      width: 90%;
+      height: 100px;
+      margin: 10px auto;
+      display: block;
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
 
-<div id="controls">
-  <button onclick="startTest()">Start Test</button>
-  <button onclick="stopTest()">Stop Test</button>
+<div id="uploadContainer">
+  <h1>IELTS Reading Simulator</h1>
+  <input type="file" id="fileInput" accept=".pdf" />
 </div>
 
-<div id="main">
-  <div class="pdf-container">
-    <embed id="pdfLeft" src="" type="application/pdf">
-    <div class="note-layer" contenteditable="true" spellcheck="false"></div>
-  </div>
-
-  <div class="pdf-container">
-    <embed id="pdfRight" src="" type="application/pdf">
-    <div class="note-layer" contenteditable="true" spellcheck="false"></div>
-  </div>
+<div id="controls" style="display:none;">
+  <button id="addComment">Добавить комментарий</button>
+  <button id="stopTest">Stop Test</button>
+  <span id="timer">60:00</span>
 </div>
 
+<div class="container" id="pdfContainer" style="display:none;">
+  <div class="half" id="leftPane"></div>
+  <div class="half" id="rightPane"></div>
+</div>
+
+<div id="history" style="display:none;">
+  <h2>История тестов</h2>
+  <ul id="fileHistory"></ul>
+  <button onclick="startNewTest()">Начать новый тест</button>
+</div>
+
+<script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
 <script>
-  function startTest() {
-    document.querySelectorAll('.note-layer').forEach(layer => {
-      layer.style.pointerEvents = 'auto';
-      layer.focus();
-    });
+  let timerInterval;
+  let timeLeft = 60 * 60; // 60 minutes
+
+  function startTimer() {
+    const timerDisplay = document.getElementById('timer');
+    timerInterval = setInterval(() => {
+      let minutes = Math.floor(timeLeft / 60);
+      let seconds = timeLeft % 60;
+      timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        stopTest();
+      }
+      timeLeft--;
+    }, 1000);
   }
 
   function stopTest() {
-    document.querySelectorAll('.note-layer').forEach(layer => {
-      layer.style.pointerEvents = 'none';
+    clearInterval(timerInterval);
+    document.getElementById('pdfContainer').style.display = 'none';
+    document.getElementById('controls').style.display = 'none';
+    document.getElementById('history').style.display = 'block';
+  }
+
+  function startNewTest() {
+    document.getElementById('history').style.display = 'none';
+    document.getElementById('uploadContainer').style.display = 'flex';
+    timeLeft = 60 * 60;
+  }
+
+  document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      const fileReader = new FileReader();
+      fileReader.onload = function() {
+        const typedarray = new Uint8Array(this.result);
+        showPDF(typedarray, 'leftPane');
+        showPDF(typedarray, 'rightPane');
+        document.getElementById('uploadContainer').style.display = 'none';
+        document.getElementById('pdfContainer').style.display = 'flex';
+        document.getElementById('controls').style.display = 'flex';
+        startTimer();
+        addToHistory(file.name);
+      };
+      fileReader.readAsArrayBuffer(file);
+    }
+  });
+
+  function showPDF(data, containerId) {
+    pdfjsLib.getDocument({data: data}).promise.then(pdf => {
+      for (let i = 1; i <= pdf.numPages; i++) {
+        pdf.getPage(i).then(page => {
+          const scale = 1.5;
+          const viewport = page.getViewport({ scale: scale });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          page.render({canvasContext: context, viewport: viewport});
+          document.getElementById(containerId).appendChild(canvas);
+        });
+      }
     });
   }
 
-  function loadPDF(targetId, file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      document.getElementById(targetId).src = e.target.result;
-    }
-    reader.readAsDataURL(file);
+  document.getElementById('stopTest').addEventListener('click', stopTest);
+
+  function addToHistory(fileName) {
+    const li = document.createElement('li');
+    li.textContent = fileName;
+    document.getElementById('fileHistory').appendChild(li);
   }
 
-  document.body.addEventListener('dragover', (e) => {
-    e.preventDefault();
-  });
-
-  document.body.addEventListener('drop', (e) => {
-    e.preventDefault();
-    const files = e.dataTransfer.files;
-    if (files.length >= 2) {
-      if (files[0].type === "application/pdf") {
-        loadPDF('pdfLeft', files[0]);
-      }
-      if (files[1].type === "application/pdf") {
-        loadPDF('pdfRight', files[1]);
-      }
-    } else {
-      alert("Пожалуйста, перетащите два PDF-файла сразу.");
-    }
+  document.getElementById('addComment').addEventListener('click', () => {
+    const textarea = document.createElement('textarea');
+    document.body.appendChild(textarea);
   });
 </script>
 
