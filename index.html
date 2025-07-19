@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IELTS CD Reading Simulator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+    header {
+      background-color: #003366;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .container {
+      display: flex;
+      height: calc(100vh - 70px);
+    }
+    .left, .right {
+      padding: 10px;
+      overflow-y: auto;
+    }
+    .left {
+      flex: 2;
+      background-color: #fff;
+      border-right: 2px solid #ccc;
+    }
+    .right {
+      flex: 1;
+      background-color: #f0f8ff;
+      position: relative;
+    }
+    .upload-section {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .upload-btn {
+      padding: 15px 30px;
+      background-color: #0055a5;
+      color: #fff;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.3s ease;
+    }
+    .upload-btn:hover {
+      background-color: #003366;
+    }
+    .timer {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #003366;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .question {
+      margin: 10px 0;
+    }
+    .question input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .finish-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #0055a5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1.1rem;
+    }
+    .finish-btn:hover {
+      background-color: #003366;
+    }
+    footer {
+      text-align: center;
+      padding: 10px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <header>IELTS CD Reading Simulator</header>
+  <div class="container">
+    <div class="left" id="pdfViewer">
+      <div class="upload-section" id="uploadSection">
+        <h2>Загрузите PDF файл IELTS</h2>
+        <input type="file" id="fileInput" accept="application/pdf" hidden />
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Загрузить PDF</button>
+      </div>
+    </div>
+    <div class="right" id="questionSection" style="display:none;">
+      <div class="timer" id="timer">60:00</div>
+      <div id="questions">
+        <div class="question">
+          <label>Question 1</label>
+          <input type="text" placeholder="Your answer...">
+        </div>
+        <div class="question">
+          <label>Question 2</label>
+          <input type="text" placeholder="Your answer...">
+        </div>
+        <div class="question">
+          <label>Question 3</label>
+          <input type="text" placeholder="Your answer...">
+        </div>
+        <!-- Add more questions as needed -->
+      </div>
+      <button class="finish-btn" onclick="finishTest()">Завершить тест</button>
+    </div>
+  </div>
+  <footer>By Mirabbos Mirzakhidov</footer>
+
+  <script>
+    const timerEl = document.getElementById('timer');
+    let time = 60 * 60; // 60 minutes
+    let timerInterval;
+
+    document.getElementById('fileInput').addEventListener('change', function() {
+      const uploadSection = document.getElementById('uploadSection');
+      const questionSection = document.getElementById('questionSection');
+      uploadSection.style.display = 'none';
+      questionSection.style.display = 'block';
+
+      startTimer();
+
+      // Show PDF file name as placeholder (PDF.js integration required for real PDF view)
+      const pdfViewer = document.getElementById('pdfViewer');
+      pdfViewer.innerHTML = `<h3>Вы просматриваете файл: ${this.files[0].name}</h3>`;
+    });
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        let minutes = Math.floor(time / 60);
+        let seconds = time % 60;
+        timerEl.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        time--;
+        if (time < 0) {
+          clearInterval(timerInterval);
+          finishTest();
+        }
+      }, 1000);
+    }
+
+    function finishTest() {
+      clearInterval(timerInterval);
+      alert("Тест завершен! Ваши ответы сохранены.");
+      // Here you can add saving to "My Tests" logic
+    }
+  </script>
+</body>
+</html>
