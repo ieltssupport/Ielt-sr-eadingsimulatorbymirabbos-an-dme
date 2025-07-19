@@ -34,15 +34,16 @@
             overflow-y: scroll;
             position: relative;
         }
-        .comment-text {
+        .comment-box {
             position: absolute;
-            background: transparent;
-            padding: 2px 5px;
+            background: #fff;
+            border: 1px solid #ccc;
             border-radius: 4px;
-            cursor: text;
-            min-width: 50px;
+            padding: 4px;
+            font-size: 14px;
+            min-width: 100px;
             min-height: 20px;
-            outline: 1px dashed #1a73e8;
+            cursor: text;
         }
         #timer {
             position: fixed;
@@ -109,7 +110,7 @@
 <div id="uploadSection">
     <input type="file" id="fileInput" accept="application/pdf">
     <p style="font-size: 18px;">Загрузите ваш IELTS PDF</p>
-    <button onclick="startTest()">Начать тест</button>
+    <button onclick="startTest()">Старт</button>
 </div>
 
 <div id="timer" style="display:none;">60:00</div>
@@ -125,14 +126,14 @@
     </div>
 </div>
 
-<div id="endTest" style="display:none;">
+<div id="endTest">
     <div id="history">
-        <h2>📜 Моя история</h2>
+        <h2>📜 Мои тесты</h2>
         <ul id="testHistory"></ul>
     </div>
     <div id="newTest">
         <h2>✅ Тест завершён!</h2>
-        <button onclick="restartTest()">Начать новый тест</button>
+        <button onclick="location.reload()">Начать новый тест</button>
     </div>
 </div>
 
@@ -225,14 +226,17 @@
     }
 
     function addComment(event) {
-        event.preventDefault(); // предотвращает scroll
-        const textDiv = document.createElement('div');
-        textDiv.className = 'comment-text';
-        textDiv.contentEditable = "true";
-        textDiv.style.top = (event.offsetY - 10) + 'px';
-        textDiv.style.left = (event.offsetX - 10) + 'px';
-        pdfQuestionsViewer.appendChild(textDiv);
-        setTimeout(() => textDiv.focus(), 0); // гарантируем, что фокус не триггерит scroll
+        event.preventDefault();
+        const scrollY = window.scrollY; // <-- запомним текущий скролл
+        const scrollX = window.scrollX;
+        const box = document.createElement('div');
+        box.className = 'comment-box';
+        box.contentEditable = true;
+        box.style.top = (event.offsetY - 10) + 'px';
+        box.style.left = (event.offsetX - 10) + 'px';
+        pdfQuestionsViewer.appendChild(box);
+        box.focus();
+        window.scrollTo(scrollX, scrollY); // <-- вернем скролл обратно
     }
 
     function addTestToHistory(name) {
@@ -241,13 +245,10 @@
         li.textContent = name;
         testHistory.appendChild(li);
     }
-
-    function restartTest() {
-        location.reload();
-    }
 </script>
 </body>
 </html>
+
 
 
 
