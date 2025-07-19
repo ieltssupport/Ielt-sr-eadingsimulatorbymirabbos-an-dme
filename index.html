@@ -154,6 +154,12 @@
     let totalTime = 60 * 60; // 60 минут
     let loadedFileName = "";
 
+    // Загрузка истории тестов при старте
+    window.onload = () => {
+        const savedHistory = JSON.parse(localStorage.getItem('ieltsTestHistory') || "[]");
+        savedHistory.forEach(name => addTestToHistory(name));
+    };
+
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file.type === "application/pdf") {
@@ -222,6 +228,7 @@
         controls.style.display = "none";
         endTest.style.display = "flex";
         addTestToHistory(loadedFileName);
+        saveHistoryToLocalStorage();
     }
 
     function addEditableText(event) {
@@ -245,9 +252,18 @@
         li.textContent = name;
         testHistory.appendChild(li);
     }
+
+    function saveHistoryToLocalStorage() {
+        const tests = [];
+        document.querySelectorAll('#testHistory li').forEach(li => {
+            tests.push(li.textContent);
+        });
+        localStorage.setItem('ieltsTestHistory', JSON.stringify(tests));
+    }
 </script>
 </body>
 </html>
+
 
 
 
