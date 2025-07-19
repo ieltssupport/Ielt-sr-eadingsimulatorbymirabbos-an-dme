@@ -5,176 +5,124 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>IELTS Reading Simulator</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #004b87;
-    color: white;
-    margin: 0; padding: 0;
-  }
-  header {
-    background: #0072ce;
-    padding: 20px;
-    text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-  }
-  main {
-    padding: 20px;
-    max-width: 800px;
-    margin: auto;
-  }
-  label, button {
-    font-size: 1.1rem;
-    margin-top: 10px;
-    display: block;
-  }
-  input[type="file"] {
-    margin-top: 10px;
-  }
-  #pdfContainer {
-    position: relative;
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
     width: 100%;
-    height: 600px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #controls {
+    text-align: center;
+    padding: 10px;
+    background: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+  }
+  #controls button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  #main {
+    display: flex;
+    flex: 1;
+  }
+  .pdf-container {
+    position: relative;
+    flex: 1;
+    height: 100%;
     border: none;
-    background: white;
-    margin-top: 20px;
+  }
+  embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .note-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    color: #FF0000;
+    font-size: 18px;
+    outline: none;
+    z-index: 10;
+    cursor: text;
     overflow: auto;
-  }
-  #timer {
-    font-size: 1.5rem;
-    margin-top: 20px;
-    font-weight: bold;
-    color: #ffd700;
-    text-align: center;
-  }
-  #bandChart {
-    margin-top: 30px;
-    background: white;
-    color: black;
-    padding: 15px;
-    border-radius: 8px;
-  }
-  footer {
-    text-align: center;
-    padding: 15px;
-    font-size: 0.9rem;
-    background: #003355;
-    margin-top: 40px;
+    pointer-events: none; /* Disable editing until Start Test */
   }
 </style>
 </head>
 <body>
 
-<header>IELTS Reading Simulator</header>
+<div id="controls">
+  <button onclick="startTest()">Start Test</button>
+  <button onclick="stopTest()">Stop Test</button>
+</div>
 
-<main>
-  <label for="pdfUpload">Upload your IELTS Reading PDF:</label>
-  <input type="file" id="pdfUpload" accept="application/pdf" />
-
-  <div id="timer">Timer: 60:00</div>
-
-  <div id="pdfContainer" contenteditable="true">
-    <p style="color:gray; text-align:center; margin-top:200px;">PDF will appear here. You can write and highlight text directly.</p>
+<div id="main">
+  <div class="pdf-container">
+    <embed id="pdfLeft" src="" type="application/pdf">
+    <div class="note-layer" contenteditable="true" spellcheck="false"></div>
   </div>
 
-  <button id="startTimer" disabled>Start Test</button>
-
-  <div id="bandChart" style="display:none;">
-    <h3>IELTS Band Score Chart (Reading)</h3>
-    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; text-align:center;">
-      <tr><th>Correct Answers</th><th>Band Score</th></tr>
-      <tr><td>39-40</td><td>9</td></tr>
-      <tr><td>37-38</td><td>8.5</td></tr>
-      <tr><td>35-36</td><td>8</td></tr>
-      <tr><td>33-34</td><td>7.5</td></tr>
-      <tr><td>30-32</td><td>7</td></tr>
-      <tr><td>27-29</td><td>6.5</td></tr>
-      <tr><td>23-26</td><td>6</td></tr>
-      <tr><td>19-22</td><td>5.5</td></tr>
-      <tr><td>15-18</td><td>5</td></tr>
-      <tr><td>13-14</td><td>4.5</td></tr>
-      <tr><td>10-12</td><td>4</td></tr>
-      <tr><td>7-9</td><td>3.5</td></tr>
-      <tr><td>5-6</td><td>3</td></tr>
-      <tr><td>3-4</td><td>2.5</td></tr>
-      <tr><td>1-2</td><td>2</td></tr>
-      <tr><td>0</td><td>1</td></tr>
-    </table>
+  <div class="pdf-container">
+    <embed id="pdfRight" src="" type="application/pdf">
+    <div class="note-layer" contenteditable="true" spellcheck="false"></div>
   </div>
-</main>
-
-<footer>
-  Made by Mirabbos Mirzakhidov
-</footer>
+</div>
 
 <script>
-  const pdfUpload = document.getElementById('pdfUpload');
-  const pdfContainer = document.getElementById('pdfContainer');
-  const startTimerBtn = document.getElementById('startTimer');
-  const timerDisplay = document.getElementById('timer');
-  const bandChart = document.getElementById('bandChart');
+  function startTest() {
+    document.querySelectorAll('.note-layer').forEach(layer => {
+      layer.style.pointerEvents = 'auto';
+      layer.focus();
+    });
+  }
 
-  let timerInterval;
-  let timeLeft = 60 * 60;
+  function stopTest() {
+    document.querySelectorAll('.note-layer').forEach(layer => {
+      layer.style.pointerEvents = 'none';
+    });
+  }
 
-  pdfUpload.addEventListener('change', () => {
-    const file = pdfUpload.files[0];
-    if (file && file.type === "application/pdf") {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const pdfData = `<embed src="${e.target.result}" type="application/pdf" width="100%" height="100%" />`;
-        pdfContainer.innerHTML = pdfData;
-        pdfContainer.contentEditable = true;
-        startTimerBtn.disabled = false;
-        bandChart.style.display = "none";
-        resetTimer();
+  function loadPDF(targetId, file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById(targetId).src = e.target.result;
+    }
+    reader.readAsDataURL(file);
+  }
+
+  document.body.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+
+  document.body.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files.length >= 2) {
+      if (files[0].type === "application/pdf") {
+        loadPDF('pdfLeft', files[0]);
       }
-      reader.readAsDataURL(file);
+      if (files[1].type === "application/pdf") {
+        loadPDF('pdfRight', files[1]);
+      }
     } else {
-      alert('Please upload a valid PDF file.');
-      pdfContainer.innerHTML = '<p style="color:gray; text-align:center; margin-top:200px;">PDF will appear here. You can write and highlight text directly.</p>';
-      startTimerBtn.disabled = true;
-      bandChart.style.display = "none";
+      alert("Пожалуйста, перетащите два PDF-файла сразу.");
     }
   });
-
-  startTimerBtn.addEventListener('click', () => {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-      startTimerBtn.textContent = 'Start Test';
-      resetTimer();
-    } else {
-      startTimerBtn.textContent = 'Stop Test';
-      bandChart.style.display = "none";
-      timerInterval = setInterval(() => {
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          timerInterval = null;
-          alert('Time is up! Check your answers and see the band score chart.');
-          bandChart.style.display = "block";
-          startTimerBtn.textContent = 'Start Test';
-          return;
-        }
-        timeLeft--;
-        timerDisplay.textContent = `Timer: ${formatTime(timeLeft)}`;
-      }, 1000);
-    }
-  });
-
-  function resetTimer() {
-    timeLeft = 60 * 60;
-    timerDisplay.textContent = 'Timer: 60:00';
-  }
-
-  function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-  }
 </script>
 
 </body>
 </html>
+
 
 
