@@ -34,15 +34,46 @@
             overflow-y: scroll;
             position: relative;
         }
-        .comment-box {
+        .comment-icon {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background-color: rgba(26, 115, 232, 0.7);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            user-select: none;
+        }
+        .comment-popup {
             position: absolute;
             background: #fff;
             border: 1px solid #ccc;
+            border-radius: 5px;
             padding: 5px;
-            font-size: 14px;
+            width: 200px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        .comment-popup textarea {
+            width: 100%;
+            height: 60px;
+            border: none;
             resize: none;
-            width: 80%;
-            height: 50px;
+            font-size: 14px;
+        }
+        .comment-popup button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-top: 5px;
+            border-radius: 4px;
+            cursor: pointer;
         }
         #timer {
             position: fixed;
@@ -120,17 +151,15 @@
 
 <div id="pdfContainer" style="display:none;">
     <div class="pdf-viewer" id="pdfTextViewer"></div>
-    <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addComment(event)">
-        <p style="padding: 10px; color: #999;">💬 Нажмите на вопрос, чтобы оставить комментарий</p>
+    <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addCommentIcon(event)">
+        <p style="padding: 10px; color: #999;">💬 Кликните на любое место, чтобы добавить комментарий</p>
     </div>
 </div>
 
 <div id="endTest">
     <div id="history">
         <h2>📜 Мои тесты</h2>
-        <ul id="testHistory">
-            <!-- История загруженных PDF -->
-        </ul>
+        <ul id="testHistory"></ul>
     </div>
     <div id="newTest">
         <h2>✅ Тест завершён!</h2>
@@ -226,13 +255,29 @@
         addTestToHistory(loadedFileName);
     }
 
-    function addComment(event) {
-        const box = document.createElement('textarea');
-        box.className = 'comment-box';
-        box.style.top = (event.offsetY - 20) + 'px';
-        box.style.left = (event.offsetX - 20) + 'px';
-        pdfQuestionsViewer.appendChild(box);
-        box.focus();
+    function addCommentIcon(event) {
+        const icon = document.createElement('div');
+        icon.className = 'comment-icon';
+        icon.textContent = '+';
+        icon.style.top = (event.offsetY - 9) + 'px';
+        icon.style.left = (event.offsetX - 9) + 'px';
+        pdfQuestionsViewer.appendChild(icon);
+
+        icon.addEventListener('click', function() {
+            showCommentPopup(icon);
+        });
+    }
+
+    function showCommentPopup(icon) {
+        const popup = document.createElement('div');
+        popup.className = 'comment-popup';
+        popup.style.top = (parseInt(icon.style.top) + 20) + 'px';
+        popup.style.left = (parseInt(icon.style.left) + 20) + 'px';
+        popup.innerHTML = `
+            <textarea placeholder="Введите комментарий..."></textarea>
+            <button onclick="this.parentNode.remove()">Сохранить</button>
+        `;
+        pdfQuestionsViewer.appendChild(popup);
     }
 
     function addTestToHistory(name) {
@@ -244,6 +289,7 @@
 </script>
 </body>
 </html>
+
 
 
 
