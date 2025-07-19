@@ -1,125 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IELTS Reading Simulator</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #0a1f44;
-      color: #fff;
-    }
-    #uploadContainer {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-    }
-    #pdfContainer {
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
-    .half {
-      flex: 1;
-      border: 1px solid #333;
-      overflow: auto;
-    }
-    #controls {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      gap: 10px;
-      z-index: 1000;
-    }
-    button {
-      padding: 10px 20px;
-      background: #1e90ff;
-      border: none;
-      border-radius: 5px;
-      color: white;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    textarea {
-      width: 90%;
-      height: 100px;
-      margin: 10px auto;
-      display: block;
-      font-size: 16px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Simulator</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f4ff;
+            color: #333;
+        }
+        header {
+            background-color: #1a73e8;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+        }
+        #uploadSection {
+            text-align: center;
+            margin-top: 50px;
+        }
+        #pdfContainer {
+            display: flex;
+            height: calc(100% - 60px);
+        }
+        .pdf-viewer {
+            flex: 1;
+            border: 1px solid #ccc;
+            overflow-y: scroll;
+            position: relative;
+        }
+        .comment-box {
+            position: absolute;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 5px;
+            font-size: 14px;
+            resize: none;
+            width: 80%;
+            height: 50px;
+        }
+        #timer {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            background-color: #1a73e8;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 20px;
+            z-index: 10;
+        }
+        #endTest {
+            display: none;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            padding: 15px 40px;
+            font-size: 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 20px;
+        }
+        button:hover {
+            background-color: #1558b0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #999;
+            font-size: 14px;
+        }
+        #madeBy {
+            text-align: center;
+            margin: 10px;
+            color: #1a73e8;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
-<div id="uploadContainer">
-  <h1>IELTS Reading Simulator</h1>
-  <input type="file" id="fileInput" accept=".pdf" />
+<header>IELTS Reading Simulator</header>
+
+<div id="uploadSection">
+    <input type="file" id="fileInput" accept="application/pdf">
+    <p style="font-size: 18px;">Загрузите ваш IELTS PDF</p>
 </div>
 
-<div id="controls" style="display:none;">
-  <button id="addComment">Добавить комментарий</button>
-  <button id="stopTest">Stop Test</button>
-  <span id="timer">60:00</span>
-</div>
+<div id="timer">60:00</div>
 
 <div id="pdfContainer" style="display:none;">
-  <iframe id="leftPDF" class="half"></iframe>
-  <iframe id="rightPDF" class="half"></iframe>
+    <div class="pdf-viewer" id="pdfTextViewer"></div>
+    <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addComment(event)">
+        <p style="padding: 10px; color: #999;">💬 Нажмите, чтобы добавить комментарий к вопросу</p>
+    </div>
 </div>
 
+<div id="endTest">
+    <h2>Тест завершён!</h2>
+    <button onclick="location.reload()">Начать заново</button>
+    <button onclick="document.getElementById('fileInput').click()">Загрузить другой PDF</button>
+    <button onclick="alert('Мои тесты скоро будут доступны')">Мои тесты</button>
+</div>
+
+<div id="madeBy">Made by Miraboss Mirzakhidov</div>
+<footer>&copy; 2025 IELTS Reading Simulator</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 <script>
-  let timerInterval;
-  let timeLeft = 60 * 60; // 60 minutes
-
-  function startTimer() {
+    const fileInput = document.getElementById('fileInput');
+    const pdfTextViewer = document.getElementById('pdfTextViewer');
+    const pdfQuestionsViewer = document.getElementById('pdfQuestionsViewer');
+    const uploadSection = document.getElementById('uploadSection');
+    const pdfContainer = document.getElementById('pdfContainer');
     const timerDisplay = document.getElementById('timer');
-    timerInterval = setInterval(() => {
-      let minutes = Math.floor(timeLeft / 60);
-      let seconds = timeLeft % 60;
-      timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-      if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        stopTest();
-      }
-      timeLeft--;
-    }, 1000);
-  }
+    const endTest = document.getElementById('endTest');
+    let countdown;
+    let totalTime = 60 * 60; // 60 minutes
 
-  function stopTest() {
-    clearInterval(timerInterval);
-    document.getElementById('pdfContainer').style.display = 'none';
-    document.getElementById('controls').style.display = 'none';
-    alert("Тест завершён!");
-  }
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file.type === "application/pdf") {
+            uploadSection.style.display = "none";
+            pdfContainer.style.display = "flex";
+            startTimer();
+            const fileReader = new FileReader();
+            fileReader.onload = function() {
+                const typedarray = new Uint8Array(this.result);
+                pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+                    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                        pdf.getPage(pageNum).then(page => {
+                            const scale = 1.5;
+                            const viewport = page.getViewport({scale});
+                            const canvas1 = document.createElement('canvas');
+                            const canvas2 = document.createElement('canvas');
+                            const context1 = canvas1.getContext('2d');
+                            const context2 = canvas2.getContext('2d');
+                            canvas1.height = viewport.height;
+                            canvas1.width = viewport.width;
+                            canvas2.height = viewport.height;
+                            canvas2.width = viewport.width;
 
-  document.getElementById('fileInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file && file.type === 'application/pdf') {
-      const fileURL = URL.createObjectURL(file);
-      document.getElementById('leftPDF').src = fileURL;
-      document.getElementById('rightPDF').src = fileURL;
-      document.getElementById('uploadContainer').style.display = 'none';
-      document.getElementById('pdfContainer').style.display = 'flex';
-      document.getElementById('controls').style.display = 'flex';
-      startTimer();
-    } else {
-      alert("Пожалуйста, выберите PDF-файл.");
+                            pdfTextViewer.appendChild(canvas1);
+                            pdfQuestionsViewer.appendChild(canvas2);
+
+                            page.render({canvasContext: context1, viewport});
+                            page.render({canvasContext: context2, viewport});
+                        });
+                    }
+                });
+            };
+            fileReader.readAsArrayBuffer(file);
+        } else {
+            alert("Пожалуйста, загрузите PDF файл.");
+        }
+    });
+
+    function startTimer() {
+        countdown = setInterval(() => {
+            totalTime--;
+            let minutes = String(Math.floor(totalTime / 60)).padStart(2, '0');
+            let seconds = String(totalTime % 60).padStart(2, '0');
+            timerDisplay.textContent = `${minutes}:${seconds}`;
+            if (totalTime <= 0) {
+                clearInterval(countdown);
+                endTestFunc();
+            }
+        }, 1000);
     }
-  });
 
-  document.getElementById('stopTest').addEventListener('click', stopTest);
+    function endTestFunc() {
+        pdfContainer.style.display = "none";
+        timerDisplay.style.display = "none";
+        endTest.style.display = "block";
+    }
 
-  document.getElementById('addComment').addEventListener('click', () => {
-    const textarea = document.createElement('textarea');
-    document.body.appendChild(textarea);
-  });
+    function addComment(event) {
+        const box = document.createElement('textarea');
+        box.className = 'comment-box';
+        box.style.top = (event.offsetY - 20) + 'px';
+        box.style.left = (event.offsetX - 20) + 'px';
+        pdfQuestionsViewer.appendChild(box);
+        box.focus();
+    }
 </script>
-
 </body>
 </html>
 
