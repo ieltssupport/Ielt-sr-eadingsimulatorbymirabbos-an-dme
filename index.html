@@ -230,9 +230,10 @@
     }
 
     function addAnswerBox(event) {
+        const scrollTop = pdfQuestionsViewer.scrollTop; // запоминаем текущий скролл
         const rect = pdfQuestionsViewer.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+        const x = event.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
+        const y = event.clientY - rect.top + scrollTop;
 
         const answerBox = document.createElement('div');
         answerBox.className = 'answer';
@@ -242,7 +243,8 @@
         answerBox.textContent = "Ответ...";
         pdfQuestionsViewer.appendChild(answerBox);
 
-        answerBox.focus();
+        pdfQuestionsViewer.scrollTop = scrollTop; // возвращаем скролл обратно
+        answerBox.focus({preventScroll:true}); // фикс: не скроллить при фокусе
     }
 
     function addTestToHistory(name) {
@@ -254,6 +256,7 @@
 </script>
 </body>
 </html>
+
 
 
 
