@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IELTS Reading Simulator</title>
     <style>
         html, body {
@@ -27,7 +27,6 @@
         #pdfContainer {
             display: flex;
             height: calc(100% - 120px);
-            position: relative;
         }
         .pdf-viewer {
             flex: 1;
@@ -35,19 +34,15 @@
             overflow-y: scroll;
             position: relative;
         }
-        .answer {
+        .editable-text {
             position: absolute;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #1a73e8;
-            border-radius: 4px;
-            padding: 4px 6px;
-            font-size: 14px;
-            min-width: 80px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #000;
+            font-size: 16px;
+            min-width: 50px;
             min-height: 20px;
-            cursor: text;
-        }
-        .answer:focus {
-            outline: 2px solid #1a73e8;
         }
         #timer {
             position: fixed;
@@ -112,7 +107,7 @@
 <header>IELTS Reading Simulator</header>
 
 <div id="uploadSection">
-    <input type="file" id="fileInput" accept="application/pdf">
+    <input type="file" id="fileInput" accept="application/pdf" />
     <p style="font-size: 18px;">Загрузите ваш IELTS PDF</p>
     <button onclick="startTest()">Старт</button>
 </div>
@@ -125,8 +120,8 @@
 
 <div id="pdfContainer" style="display:none;">
     <div class="pdf-viewer" id="pdfTextViewer"></div>
-    <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addAnswerBox(event)">
-        <p style="padding: 10px; color: #999;">✏ Кликните на PDF, чтобы ввести ответ</p>
+    <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addEditableText(event)">
+        <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы начать писать</p>
     </div>
 </div>
 
@@ -229,22 +224,15 @@
         addTestToHistory(loadedFileName);
     }
 
-    function addAnswerBox(event) {
-        const scrollTop = pdfQuestionsViewer.scrollTop; // запоминаем текущий скролл
-        const rect = pdfQuestionsViewer.getBoundingClientRect();
-        const x = event.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
-        const y = event.clientY - rect.top + scrollTop;
-
-        const answerBox = document.createElement('div');
-        answerBox.className = 'answer';
-        answerBox.contentEditable = true;
-        answerBox.style.left = x + 'px';
-        answerBox.style.top = y + 'px';
-        answerBox.textContent = "Ответ...";
-        pdfQuestionsViewer.appendChild(answerBox);
-
-        pdfQuestionsViewer.scrollTop = scrollTop; // возвращаем скролл обратно
-        answerBox.focus({preventScroll:true}); // фикс: не скроллить при фокусе
+    function addEditableText(event) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'editable-text';
+        input.style.top = (event.offsetY - 10) + 'px';
+        input.style.left = (event.offsetX - 10) + 'px';
+        input.placeholder = '';
+        pdfQuestionsViewer.appendChild(input);
+        input.focus();
     }
 
     function addTestToHistory(name) {
