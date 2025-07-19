@@ -34,16 +34,15 @@
             overflow-y: scroll;
             position: relative;
         }
-        .comment-box {
+        .editable-text {
             position: absolute;
-            min-width: 120px;
-            min-height: 30px;
-            padding: 5px;
-            background-color: rgba(255, 255, 150, 0.8);
-            border: 1px solid #999;
-            border-radius: 5px;
+            min-width: 50px;
+            min-height: 20px;
+            background-color: rgba(255,255,255,0.6);
+            border: 1px dashed #1a73e8;
+            padding: 2px 5px;
+            border-radius: 4px;
             cursor: text;
-            font-size: 14px;
         }
         #timer {
             position: fixed;
@@ -110,7 +109,7 @@
 <div id="uploadSection">
     <input type="file" id="fileInput" accept="application/pdf">
     <p style="font-size: 18px;">Загрузите ваш IELTS PDF</p>
-    <button onclick="startTest()">Начать тест</button>
+    <button onclick="startTest()">Старт</button>
 </div>
 
 <div id="timer" style="display:none;">60:00</div>
@@ -121,8 +120,8 @@
 
 <div id="pdfContainer" style="display:none;">
     <div class="pdf-viewer" id="pdfTextViewer"></div>
-    <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addComment(event)">
-        <p style="padding: 10px; color: #999;">💬 Кликните на любое место, чтобы добавить текст</p>
+    <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addEditableText(event)">
+        <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст</p>
     </div>
 </div>
 
@@ -225,21 +224,19 @@
         addTestToHistory(loadedFileName);
     }
 
-    function addComment(event) {
-        event.preventDefault();
-        const scrollY = window.scrollY;
+    function addEditableText(event) {
+        const rect = pdfQuestionsViewer.getBoundingClientRect();
+        const x = event.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
+        const y = event.clientY - rect.top + pdfQuestionsViewer.scrollTop;
 
-        const box = document.createElement('div');
-        box.className = 'comment-box';
-        box.contentEditable = true;
-        box.style.top = (event.offsetY - 10) + 'px';
-        box.style.left = (event.offsetX - 10) + 'px';
-        pdfQuestionsViewer.appendChild(box);
+        const editable = document.createElement('div');
+        editable.className = 'editable-text';
+        editable.contentEditable = true;
+        editable.style.left = x + 'px';
+        editable.style.top = y + 'px';
+        pdfQuestionsViewer.appendChild(editable);
 
-        setTimeout(() => {
-            box.focus();
-            window.scrollTo(0, scrollY);
-        }, 0);
+        editable.focus();
     }
 
     function addTestToHistory(name) {
@@ -251,6 +248,7 @@
 </script>
 </body>
 </html>
+
 
 
 
