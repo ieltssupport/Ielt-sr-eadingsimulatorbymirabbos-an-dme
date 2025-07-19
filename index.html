@@ -110,7 +110,7 @@
 <div id="uploadSection">
     <input type="file" id="fileInput" accept="application/pdf">
     <p style="font-size: 18px;">Загрузите ваш IELTS PDF</p>
-    <button onclick="startTest()">Старт</button>
+    <button onclick="startTest()">Начать тест</button>
 </div>
 
 <div id="timer" style="display:none;">60:00</div>
@@ -227,10 +227,7 @@
 
     function addComment(event) {
         event.preventDefault();
-
-        // Сохраняем позицию скролла
-        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-        const scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft;
+        const scrollY = window.scrollY;
 
         const box = document.createElement('div');
         box.className = 'comment-box';
@@ -239,10 +236,9 @@
         box.style.left = (event.offsetX - 10) + 'px';
         pdfQuestionsViewer.appendChild(box);
 
-        // Отмена автофокуса и возврат скролла
         setTimeout(() => {
             box.focus();
-            window.scrollTo(scrollLeft, scrollTop);
+            window.scrollTo(0, scrollY);
         }, 0);
     }
 
@@ -255,6 +251,7 @@
 </script>
 </body>
 </html>
+
 
 
 
