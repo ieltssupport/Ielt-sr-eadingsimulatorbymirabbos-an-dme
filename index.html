@@ -36,14 +36,14 @@
         }
         .comment-box {
             position: absolute;
-            background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 4px;
-            font-size: 14px;
-            min-width: 100px;
-            min-height: 20px;
+            min-width: 120px;
+            min-height: 30px;
+            padding: 5px;
+            background-color: rgba(255, 255, 150, 0.8);
+            border: 1px solid #999;
+            border-radius: 5px;
             cursor: text;
+            font-size: 14px;
         }
         #timer {
             position: fixed;
@@ -122,7 +122,7 @@
 <div id="pdfContainer" style="display:none;">
     <div class="pdf-viewer" id="pdfTextViewer"></div>
     <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addComment(event)">
-        <p style="padding: 10px; color: #999;">Кликните на любое место, чтобы добавить текст</p>
+        <p style="padding: 10px; color: #999;">💬 Кликните на любое место, чтобы добавить текст</p>
     </div>
 </div>
 
@@ -227,16 +227,23 @@
 
     function addComment(event) {
         event.preventDefault();
-        const scrollY = window.scrollY; // <-- запомним текущий скролл
-        const scrollX = window.scrollX;
+
+        // Сохраняем позицию скролла
+        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        const scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft;
+
         const box = document.createElement('div');
         box.className = 'comment-box';
         box.contentEditable = true;
         box.style.top = (event.offsetY - 10) + 'px';
         box.style.left = (event.offsetX - 10) + 'px';
         pdfQuestionsViewer.appendChild(box);
-        box.focus();
-        window.scrollTo(scrollX, scrollY); // <-- вернем скролл обратно
+
+        // Отмена автофокуса и возврат скролла
+        setTimeout(() => {
+            box.focus();
+            window.scrollTo(scrollLeft, scrollTop);
+        }, 0);
     }
 
     function addTestToHistory(name) {
@@ -248,6 +255,7 @@
 </script>
 </body>
 </html>
+
 
 
 
