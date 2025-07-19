@@ -154,11 +154,13 @@
     let totalTime = 60 * 60; // 60 минут
     let loadedFileName = "";
 
-    // Загрузка истории тестов при старте
-    window.onload = () => {
-        const savedHistory = JSON.parse(localStorage.getItem('ieltsTestHistory') || "[]");
-        savedHistory.forEach(name => addTestToHistory(name));
-    };
+    // Загрузить историю из localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
+        savedHistory.forEach(name => {
+            addTestToHistory(name);
+        });
+    });
 
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -228,7 +230,6 @@
         controls.style.display = "none";
         endTest.style.display = "flex";
         addTestToHistory(loadedFileName);
-        saveHistoryToLocalStorage();
     }
 
     function addEditableText(event) {
@@ -251,18 +252,16 @@
         const li = document.createElement('li');
         li.textContent = name;
         testHistory.appendChild(li);
-    }
 
-    function saveHistoryToLocalStorage() {
-        const tests = [];
-        document.querySelectorAll('#testHistory li').forEach(li => {
-            tests.push(li.textContent);
-        });
-        localStorage.setItem('ieltsTestHistory', JSON.stringify(tests));
+        // Сохранить историю в localStorage
+        let savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
+        savedHistory.push(name);
+        localStorage.setItem('testHistory', JSON.stringify(savedHistory));
     }
 </script>
 </body>
 </html>
+
 
 
 
