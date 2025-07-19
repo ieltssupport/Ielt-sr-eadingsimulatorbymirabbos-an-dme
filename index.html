@@ -60,9 +60,9 @@
             margin: 15px;
         }
         #endTest {
-            display: none; /* <-- Скрыт по умолчанию */
+            display: none;
             height: calc(100% - 120px);
-            flex: 1;
+            display: flex;
         }
         #history {
             flex: 1;
@@ -153,17 +153,13 @@
     let countdown;
     let totalTime = 60 * 60; // 60 минут
     let loadedFileName = "";
-
-    // Загружаем историю из localStorage
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
-        savedHistory.forEach(name => addTestToHistory(name));
-    });
+    let answersKey = "";
 
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
-        if (file && file.type === "application/pdf") {
+        if (file.type === "application/pdf") {
             loadedFileName = file.name;
+            answersKey = `answers_${loadedFileName}`;
         } else {
             alert("Пожалуйста, загрузите PDF файл.");
         }
@@ -203,6 +199,7 @@
                         page.render({canvasContext: context2, viewport});
                     });
                 }
+                restoreAnswers();
             });
         };
         fileReader.readAsArrayBuffer(fileInput.files[0]);
@@ -243,6 +240,34 @@
         pdfQuestionsViewer.appendChild(editable);
 
         editable.focus();
+        editable.addEventListener('input', saveAnswers);
+        saveAnswers();
+    }
+
+    function saveAnswers() {
+        const answers = [];
+        document.querySelectorAll('.editable-text').forEach(div => {
+            answers.push({
+                x: parseFloat(div.style.left),
+                y: parseFloat(div.style.top),
+                text: div.innerText
+            });
+        });
+        localStorage.setItem(answersKey, JSON.stringify(answers));
+    }
+
+    function restoreAnswers() {
+        const saved = JSON.parse(localStorage.getItem(answersKey) || "[]");
+        saved.forEach(item => {
+            const editable = document.createElement('div');
+            editable.className = 'editable-text';
+            editable.contentEditable = true;
+            editable.style.left = item.x + 'px';
+            editable.style.top = item.y + 'px';
+            editable.innerText = item.text;
+            pdfQuestionsViewer.appendChild(editable);
+            editable.addEventListener('input', saveAnswers);
+        });
     }
 
     function addTestToHistory(name) {
@@ -251,15 +276,24 @@
         li.textContent = name;
         testHistory.appendChild(li);
 
-        // Сохраняем в localStorage
-        const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
-        savedHistory.push(name);
-        localStorage.setItem('testHistory', JSON.stringify(savedHistory));
+        let savedHistory = JSON.parse(localStorage.getItem('testHistory') || "[]");
+        if (!savedHistory.includes(name)) {
+            savedHistory.push(name);
+            localStorage.setItem('testHistory', JSON.stringify(savedHistory));
+        }
     }
+
+    window.addEventListener('load', () => {
+        let savedHistory = JSON.parse(localStorage.getItem('testHistory') || "[]");
+        savedHistory.forEach(name => {
+            const li = document.createElement('li');
+            li.textContent = name;
+            testHistory.appendChild(li);
+        });
+    });
 </script>
 </body>
 </html>
-
 
 
 
