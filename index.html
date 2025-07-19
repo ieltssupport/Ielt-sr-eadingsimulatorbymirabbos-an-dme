@@ -60,9 +60,9 @@
             margin: 15px;
         }
         #endTest {
-            display: none;
+            display: none; /* <-- Скрыт по умолчанию */
             height: calc(100% - 120px);
-            display: flex;
+            flex: 1;
         }
         #history {
             flex: 1;
@@ -154,17 +154,15 @@
     let totalTime = 60 * 60; // 60 минут
     let loadedFileName = "";
 
-    // Загрузить историю из localStorage
+    // Загружаем историю из localStorage
     document.addEventListener('DOMContentLoaded', () => {
         const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
-        savedHistory.forEach(name => {
-            addTestToHistory(name);
-        });
+        savedHistory.forEach(name => addTestToHistory(name));
     });
 
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
-        if (file.type === "application/pdf") {
+        if (file && file.type === "application/pdf") {
             loadedFileName = file.name;
         } else {
             alert("Пожалуйста, загрузите PDF файл.");
@@ -253,14 +251,15 @@
         li.textContent = name;
         testHistory.appendChild(li);
 
-        // Сохранить историю в localStorage
-        let savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
+        // Сохраняем в localStorage
+        const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
         savedHistory.push(name);
         localStorage.setItem('testHistory', JSON.stringify(savedHistory));
     }
 </script>
 </body>
 </html>
+
 
 
 
