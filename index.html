@@ -75,11 +75,6 @@
             padding: 20px;
             text-align: center;
         }
-        #analysisPage {
-            display: none;
-            height: calc(100% - 120px);
-            flex: 1;
-        }
         button {
             background-color: #1a73e8;
             color: white;
@@ -104,6 +99,10 @@
             margin: 10px;
             color: #1a73e8;
             font-weight: bold;
+        }
+        #analyzeContainer {
+            display: none;
+            height: calc(100% - 120px);
         }
     </style>
 </head>
@@ -138,12 +137,13 @@
     <div id="newTest">
         <h2>✅ Тест завершён!</h2>
         <button onclick="location.reload()">Начать новый тест</button>
-        <button onclick="openAnalysisPage()">Анализировать</button>
+        <button onclick="startAnalysis()">Анализировать</button>
     </div>
 </div>
 
-<div id="analysisPage">
-    <div class="pdf-viewer" id="analysisViewer"></div>
+<div id="analyzeContainer">
+    <div class="pdf-viewer" id="analyzePdfViewer"></div>
+    <div class="pdf-viewer" id="analyzeAnswersViewer"></div>
 </div>
 
 <div id="madeBy">Made by Miraboss Mirzakhidov</div>
@@ -160,11 +160,13 @@
     const endTest = document.getElementById('endTest');
     const testHistory = document.getElementById('testHistory');
     const controls = document.getElementById('controls');
-    const analysisPage = document.getElementById('analysisPage');
+    const analyzeContainer = document.getElementById('analyzeContainer');
+    const analyzePdfViewer = document.getElementById('analyzePdfViewer');
+    const analyzeAnswersViewer = document.getElementById('analyzeAnswersViewer');
     let countdown;
-    let totalTime = 60 * 60;
+    let totalTime = 60 * 60; // 60 минут
     let loadedFileName = "";
-    let savedPdfData = null;
+    let pdfData = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
@@ -175,13 +177,18 @@
         const file = e.target.files[0];
         if (file && file.type === "application/pdf") {
             loadedFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                pdfData = event.target.result;
+            }
+            reader.readAsArrayBuffer(file);
         } else {
             alert("Пожалуйста, загрузите PDF файл.");
         }
     });
 
     function startTest() {
-        if (!fileInput.files[0]) {
+        if (!pdfData) {
             alert("Пожалуйста, сначала выберите PDF.");
             return;
         }
@@ -190,13 +197,8 @@
         controls.style.display = "block";
         timerDisplay.style.display = "block";
         startTimer();
-        const fileReader = new FileReader();
-        fileReader.onload = function() {
-            savedPdfData = this.result;
-            renderPdf(savedPdfData, pdfTextViewer);
-            renderPdf(savedPdfData, pdfQuestionsViewer);
-        };
-        fileReader.readAsArrayBuffer(fileInput.files[0]);
+        renderPDF(pdfData, pdfTextViewer);
+        renderPDF(pdfData, pdfQuestionsViewer);
     }
 
     function startTimer() {
@@ -219,48 +221,28 @@
         controls.style.display = "none";
         endTest.style.display = "flex";
         addTestToHistory(loadedFileName);
-        localStorage.setItem('lastPdf', savedPdfData);
+        localStorage.setItem('savedPdf', pdfData);
+        localStorage.setItem('savedAnswers', pdfQuestionsViewer.innerHTML);
     }
 
-    function addEditableText(event) {
-        const rect = pdfQuestionsViewer.getBoundingClientRect();
-        const x = event.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
-        const y = event.clientY - rect.top + pdfQuestionsViewer.scrollTop;
-
-        const editable = document.createElement('div');
-        editable.className = 'editable-text';
-        editable.contentEditable = true;
-        editable.style.left = x + 'px';
-        editable.style.top = y + 'px';
-        pdfQuestionsViewer.appendChild(editable);
-
-        editable.focus();
-    }
-
-    function addTestToHistory(name) {
-        if (!name) name = "Неизвестный тест";
-        const li = document.createElement('li');
-        li.textContent = name;
-        testHistory.appendChild(li);
-
-        const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
-        savedHistory.push(name);
-        localStorage.setItem('testHistory', JSON.stringify(savedHistory));
-    }
-
-    function openAnalysisPage() {
+    function startAnalysis() {
         endTest.style.display = "none";
-        analysisPage.style.display = "flex";
-        const savedData = localStorage.getItem('lastPdf');
-        if (savedData) {
-            renderPdf(savedData, document.getElementById('analysisViewer'));
+        analyzeContainer.style.display = "flex";
+        const savedPdf = localStorage.getItem('savedPdf');
+        const savedAnswers = localStorage.getItem('savedAnswers');
+        if (savedPdf && savedAnswers) {
+            const uint8Array = new Uint8Array(JSON.parse(savedPdf));
+            renderPDF(uint8Array.buffer, analyzePdfViewer);
+            analyzeAnswersViewer.innerHTML = savedAnswers;
+        } else {
+            alert("Нет сохранённых данных для анализа.");
         }
     }
 
-    function renderPdf(pdfData, container) {
+    function renderPDF(data, container) {
         container.innerHTML = "";
-        const typedarray = new Uint8Array(pdfData);
-        pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+        const loadingTask = pdfjsLib.getDocument({data});
+        loadingTask.promise.then(pdf => {
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 pdf.getPage(pageNum).then(page => {
                     const scale = 1.2;
@@ -275,11 +257,32 @@
             }
         });
     }
+
+    function addEditableText(event) {
+        const rect = pdfQuestionsViewer.getBoundingClientRect();
+        const x = event.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
+        const y = event.clientY - rect.top + pdfQuestionsViewer.scrollTop;
+        const editable = document.createElement('div');
+        editable.className = 'editable-text';
+        editable.contentEditable = true;
+        editable.style.left = x + 'px';
+        editable.style.top = y + 'px';
+        pdfQuestionsViewer.appendChild(editable);
+        editable.focus();
+    }
+
+    function addTestToHistory(name) {
+        if (!name) name = "Неизвестный тест";
+        const li = document.createElement('li');
+        li.textContent = name;
+        testHistory.appendChild(li);
+        const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
+        savedHistory.push(name);
+        localStorage.setItem('testHistory', JSON.stringify(savedHistory));
+    }
 </script>
 </body>
 </html>
-
-
 
 
 
