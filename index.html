@@ -33,6 +33,7 @@
             border: 1px solid #ccc;
             overflow-y: scroll;
             position: relative;
+            padding: 10px;
         }
         .editable-text {
             position: absolute;
@@ -43,6 +44,9 @@
             padding: 2px 5px;
             border-radius: 4px;
             cursor: text;
+        }
+        .highlight {
+            background-color: #a8f0a5; /* зеленый */
         }
         #timer {
             position: fixed;
@@ -88,11 +92,6 @@
         button:hover {
             background-color: #1558b0;
         }
-        #analyzeControls {
-            display: none;
-            text-align: center;
-            margin: 15px;
-        }
         footer {
             text-align: center;
             margin-top: 10px;
@@ -123,10 +122,6 @@
     <button onclick="endTestFunc()">Завершить тест</button>
 </div>
 
-<div id="analyzeControls">
-    <button onclick="finishAnalyze()">Завершить анализ</button>
-</div>
-
 <div id="pdfContainer" style="display:none;">
     <div class="pdf-viewer" id="pdfTextViewer"></div>
     <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addEditableText(event)">
@@ -141,8 +136,15 @@
     </div>
     <div id="newTest">
         <h2>✅ Тест завершён!</h2>
-        <button onclick="location.reload()">Начать новый тест</button>
         <button onclick="analyzeTest()">Анализировать</button>
+        <button onclick="location.reload()">Начать новый тест</button>
+    </div>
+</div>
+
+<div id="analyzeContainer" style="display:none;">
+    <div class="pdf-viewer" id="analyzeViewer"></div>
+    <div id="controls">
+        <button onclick="endAnalysis()">Завершить анализ</button>
     </div>
 </div>
 
@@ -158,13 +160,13 @@
     const pdfContainer = document.getElementById('pdfContainer');
     const timerDisplay = document.getElementById('timer');
     const endTest = document.getElementById('endTest');
+    const analyzeContainer = document.getElementById('analyzeContainer');
     const testHistory = document.getElementById('testHistory');
     const controls = document.getElementById('controls');
-    const analyzeControls = document.getElementById('analyzeControls');
     let countdown;
     let totalTime = 60 * 60;
     let loadedFileName = "";
-    let currentPDFData = null;
+    let highlights = JSON.parse(localStorage.getItem('highlights')) || [];
 
     document.addEventListener('DOMContentLoaded', () => {
         const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
@@ -190,12 +192,8 @@
         controls.style.display = "block";
         timerDisplay.style.display = "block";
         startTimer();
-        const fileReader = new FileReader();
-        fileReader.onload = function() {
-            currentPDFData = this.result;
-            loadPDF(currentPDFData);
-        };
-        fileReader.readAsArrayBuffer(fileInput.files[0]);
+        renderPDF(fileInput.files[0], pdfTextViewer);
+        renderPDF(fileInput.files[0], pdfQuestionsViewer);
     }
 
     function startTimer() {
@@ -218,60 +216,31 @@
         controls.style.display = "none";
         endTest.style.display = "flex";
         addTestToHistory(loadedFileName);
-        saveAnswers();
     }
 
     function analyzeTest() {
         endTest.style.display = "none";
-        pdfContainer.style.display = "flex";
-        analyzeControls.style.display = "block";
-        loadPDF(currentPDFData, true);
-        restoreAnswers();
+        analyzeContainer.style.display = "block";
+        renderPDF(fileInput.files[0], document.getElementById('analyzeViewer'));
     }
 
-    function finishAnalyze() {
-        pdfContainer.style.display = "none";
-        analyzeControls.style.display = "none";
-        uploadSection.style.display = "block";
-    }
-
-    function loadPDF(pdfData, isAnalysis = false) {
-        pdfTextViewer.innerHTML = '';
-        pdfQuestionsViewer.innerHTML = '';
-        pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                pdf.getPage(pageNum).then(page => {
-                    const scale = 1.2;
-                    const viewport = page.getViewport({scale});
-                    const canvas1 = document.createElement('canvas');
-                    const canvas2 = document.createElement('canvas');
-                    const context1 = canvas1.getContext('2d');
-                    const context2 = canvas2.getContext('2d');
-                    canvas1.height = viewport.height;
-                    canvas1.width = viewport.width;
-                    canvas2.height = viewport.height;
-                    canvas2.width = viewport.width;
-
-                    pdfTextViewer.appendChild(canvas1);
-                    pdfQuestionsViewer.appendChild(canvas2);
-
-                    page.render({canvasContext: context1, viewport});
-                    page.render({canvasContext: context2, viewport});
-                });
-            }
-        });
+    function endAnalysis() {
+        analyzeContainer.style.display = "none";
+        endTest.style.display = "flex";
     }
 
     function addEditableText(event) {
         const rect = pdfQuestionsViewer.getBoundingClientRect();
         const x = event.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
         const y = event.clientY - rect.top + pdfQuestionsViewer.scrollTop;
+
         const editable = document.createElement('div');
         editable.className = 'editable-text';
         editable.contentEditable = true;
         editable.style.left = x + 'px';
         editable.style.top = y + 'px';
         pdfQuestionsViewer.appendChild(editable);
+
         editable.focus();
     }
 
@@ -280,35 +249,63 @@
         const li = document.createElement('li');
         li.textContent = name;
         testHistory.appendChild(li);
+
         const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
         savedHistory.push(name);
         localStorage.setItem('testHistory', JSON.stringify(savedHistory));
     }
 
-    function saveAnswers() {
-        const answers = [];
-        document.querySelectorAll('.editable-text').forEach(el => {
-            answers.push({ left: el.style.left, top: el.style.top, text: el.innerText });
-        });
-        localStorage.setItem('savedAnswers', JSON.stringify(answers));
+    function renderPDF(file, container) {
+        const fileReader = new FileReader();
+        fileReader.onload = function() {
+            const typedarray = new Uint8Array(this.result);
+            pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+                container.innerHTML = '';
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    pdf.getPage(pageNum).then(page => {
+                        const scale = 1.2;
+                        const viewport = page.getViewport({scale});
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        container.appendChild(canvas);
+                        page.render({canvasContext: context, viewport}).promise.then(() => {
+                            applyHighlights(container);
+                        });
+                    });
+                }
+            });
+        };
+        fileReader.readAsArrayBuffer(file);
     }
 
-    function restoreAnswers() {
-        const answers = JSON.parse(localStorage.getItem('savedAnswers')) || [];
-        answers.forEach(answer => {
-            const editable = document.createElement('div');
-            editable.className = 'editable-text';
-            editable.contentEditable = true;
-            editable.style.left = answer.left;
-            editable.style.top = answer.top;
-            editable.innerText = answer.text;
-            pdfQuestionsViewer.appendChild(editable);
+    function applyHighlights(container) {
+        const textLayer = container.querySelector('.textLayer');
+        if (!textLayer) return;
+
+        textLayer.addEventListener('mouseup', () => {
+            const selection = window.getSelection();
+            if (selection.rangeCount) {
+                const range = selection.getRangeAt(0);
+                if (!range.collapsed) {
+                    const span = document.createElement('span');
+                    span.className = 'highlight';
+                    range.surroundContents(span);
+                    saveHighlights();
+                    selection.removeAllRanges();
+                }
+            }
         });
+    }
+
+    function saveHighlights() {
+        highlights = Array.from(document.querySelectorAll('.highlight')).map(h => h.innerText);
+        localStorage.setItem('highlights', JSON.stringify(highlights));
     }
 </script>
 </body>
 </html>
-
 
 
 
