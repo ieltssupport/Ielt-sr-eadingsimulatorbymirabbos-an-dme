@@ -75,6 +75,11 @@
             padding: 20px;
             text-align: center;
         }
+        #analysisPage {
+            display: none;
+            height: calc(100% - 120px);
+            flex: 1;
+        }
         button {
             background-color: #1a73e8;
             color: white;
@@ -99,11 +104,6 @@
             margin: 10px;
             color: #1a73e8;
             font-weight: bold;
-        }
-        #analyzeMode {
-            display: none;
-            height: calc(100% - 120px);
-            flex: 1;
         }
     </style>
 </head>
@@ -137,13 +137,13 @@
     </div>
     <div id="newTest">
         <h2>✅ Тест завершён!</h2>
-        <button onclick="startAnalyzeMode()">Анализировать</button>
         <button onclick="location.reload()">Начать новый тест</button>
+        <button onclick="openAnalysisPage()">Анализировать</button>
     </div>
 </div>
 
-<div id="analyzeMode">
-    <div class="pdf-viewer" id="analyzeViewer"></div>
+<div id="analysisPage">
+    <div class="pdf-viewer" id="analysisViewer"></div>
 </div>
 
 <div id="madeBy">Made by Miraboss Mirzakhidov</div>
@@ -154,17 +154,17 @@
     const fileInput = document.getElementById('fileInput');
     const pdfTextViewer = document.getElementById('pdfTextViewer');
     const pdfQuestionsViewer = document.getElementById('pdfQuestionsViewer');
-    const analyzeViewer = document.getElementById('analyzeViewer');
     const uploadSection = document.getElementById('uploadSection');
     const pdfContainer = document.getElementById('pdfContainer');
     const timerDisplay = document.getElementById('timer');
     const endTest = document.getElementById('endTest');
-    const analyzeMode = document.getElementById('analyzeMode');
     const testHistory = document.getElementById('testHistory');
     const controls = document.getElementById('controls');
+    const analysisPage = document.getElementById('analysisPage');
     let countdown;
     let totalTime = 60 * 60;
     let loadedFileName = "";
+    let savedPdfData = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
@@ -192,36 +192,11 @@
         startTimer();
         const fileReader = new FileReader();
         fileReader.onload = function() {
-            const typedarray = new Uint8Array(this.result);
-            localStorage.setItem('savedPDF', JSON.stringify(Array.from(typedarray)));
-            loadPDFToViewers(typedarray);
+            savedPdfData = this.result;
+            renderPdf(savedPdfData, pdfTextViewer);
+            renderPdf(savedPdfData, pdfQuestionsViewer);
         };
         fileReader.readAsArrayBuffer(fileInput.files[0]);
-    }
-
-    function loadPDFToViewers(typedarray) {
-        pdfjsLib.getDocument(typedarray).promise.then(pdf => {
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                pdf.getPage(pageNum).then(page => {
-                    const scale = 1.2;
-                    const viewport = page.getViewport({scale});
-                    const canvas1 = document.createElement('canvas');
-                    const canvas2 = document.createElement('canvas');
-                    const context1 = canvas1.getContext('2d');
-                    const context2 = canvas2.getContext('2d');
-                    canvas1.height = viewport.height;
-                    canvas1.width = viewport.width;
-                    canvas2.height = viewport.height;
-                    canvas2.width = viewport.width;
-
-                    pdfTextViewer.appendChild(canvas1);
-                    pdfQuestionsViewer.appendChild(canvas2);
-
-                    page.render({canvasContext: context1, viewport});
-                    page.render({canvasContext: context2, viewport});
-                });
-            }
-        });
     }
 
     function startTimer() {
@@ -244,6 +219,7 @@
         controls.style.display = "none";
         endTest.style.display = "flex";
         addTestToHistory(loadedFileName);
+        localStorage.setItem('lastPdf', savedPdfData);
     }
 
     function addEditableText(event) {
@@ -257,32 +233,8 @@
         editable.style.left = x + 'px';
         editable.style.top = y + 'px';
         pdfQuestionsViewer.appendChild(editable);
+
         editable.focus();
-
-        saveAnswers();
-        editable.oninput = saveAnswers;
-    }
-
-    function saveAnswers() {
-        const answers = Array.from(document.querySelectorAll('.editable-text')).map(el => ({
-            text: el.innerText,
-            left: el.style.left,
-            top: el.style.top
-        }));
-        localStorage.setItem('savedAnswers', JSON.stringify(answers));
-    }
-
-    function loadSavedAnswers(container) {
-        const savedAnswers = JSON.parse(localStorage.getItem('savedAnswers')) || [];
-        savedAnswers.forEach(ans => {
-            const editable = document.createElement('div');
-            editable.className = 'editable-text';
-            editable.contentEditable = true;
-            editable.style.left = ans.left;
-            editable.style.top = ans.top;
-            editable.innerText = ans.text;
-            container.appendChild(editable);
-        });
     }
 
     function addTestToHistory(name) {
@@ -296,12 +248,18 @@
         localStorage.setItem('testHistory', JSON.stringify(savedHistory));
     }
 
-    function startAnalyzeMode() {
+    function openAnalysisPage() {
         endTest.style.display = "none";
-        analyzeMode.style.display = "flex";
-        const savedPDF = JSON.parse(localStorage.getItem('savedPDF'));
-        if (!savedPDF) return alert('Нет сохранённого PDF.');
-        const typedarray = new Uint8Array(savedPDF);
+        analysisPage.style.display = "flex";
+        const savedData = localStorage.getItem('lastPdf');
+        if (savedData) {
+            renderPdf(savedData, document.getElementById('analysisViewer'));
+        }
+    }
+
+    function renderPdf(pdfData, container) {
+        container.innerHTML = "";
+        const typedarray = new Uint8Array(pdfData);
         pdfjsLib.getDocument(typedarray).promise.then(pdf => {
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 pdf.getPage(pageNum).then(page => {
@@ -311,16 +269,16 @@
                     const context = canvas.getContext('2d');
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
-                    analyzeViewer.appendChild(canvas);
+                    container.appendChild(canvas);
                     page.render({canvasContext: context, viewport});
                 });
             }
-            loadSavedAnswers(analyzeViewer);
         });
     }
 </script>
 </body>
 </html>
+
 
 
 
