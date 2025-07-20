@@ -88,6 +88,11 @@
         button:hover {
             background-color: #1558b0;
         }
+        #analyzeControls {
+            display: none;
+            text-align: center;
+            margin: 15px;
+        }
         footer {
             text-align: center;
             margin-top: 10px;
@@ -99,10 +104,6 @@
             margin: 10px;
             color: #1a73e8;
             font-weight: bold;
-        }
-        #analyzeContainer {
-            display: none;
-            height: calc(100% - 120px);
         }
     </style>
 </head>
@@ -122,6 +123,10 @@
     <button onclick="endTestFunc()">Завершить тест</button>
 </div>
 
+<div id="analyzeControls">
+    <button onclick="finishAnalyze()">Завершить анализ</button>
+</div>
+
 <div id="pdfContainer" style="display:none;">
     <div class="pdf-viewer" id="pdfTextViewer"></div>
     <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addEditableText(event)">
@@ -137,13 +142,8 @@
     <div id="newTest">
         <h2>✅ Тест завершён!</h2>
         <button onclick="location.reload()">Начать новый тест</button>
-        <button onclick="startAnalysis()">Анализировать</button>
+        <button onclick="analyzeTest()">Анализировать</button>
     </div>
-</div>
-
-<div id="analyzeContainer">
-    <div class="pdf-viewer" id="analyzePdfViewer"></div>
-    <div class="pdf-viewer" id="analyzeAnswersViewer"></div>
 </div>
 
 <div id="madeBy">Made by Miraboss Mirzakhidov</div>
@@ -160,13 +160,11 @@
     const endTest = document.getElementById('endTest');
     const testHistory = document.getElementById('testHistory');
     const controls = document.getElementById('controls');
-    const analyzeContainer = document.getElementById('analyzeContainer');
-    const analyzePdfViewer = document.getElementById('analyzePdfViewer');
-    const analyzeAnswersViewer = document.getElementById('analyzeAnswersViewer');
+    const analyzeControls = document.getElementById('analyzeControls');
     let countdown;
-    let totalTime = 60 * 60; // 60 минут
+    let totalTime = 60 * 60;
     let loadedFileName = "";
-    let pdfData = null;
+    let currentPDFData = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
@@ -177,18 +175,13 @@
         const file = e.target.files[0];
         if (file && file.type === "application/pdf") {
             loadedFileName = file.name;
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                pdfData = event.target.result;
-            }
-            reader.readAsArrayBuffer(file);
         } else {
             alert("Пожалуйста, загрузите PDF файл.");
         }
     });
 
     function startTest() {
-        if (!pdfData) {
+        if (!fileInput.files[0]) {
             alert("Пожалуйста, сначала выберите PDF.");
             return;
         }
@@ -197,8 +190,12 @@
         controls.style.display = "block";
         timerDisplay.style.display = "block";
         startTimer();
-        renderPDF(pdfData, pdfTextViewer);
-        renderPDF(pdfData, pdfQuestionsViewer);
+        const fileReader = new FileReader();
+        fileReader.onload = function() {
+            currentPDFData = this.result;
+            loadPDF(currentPDFData);
+        };
+        fileReader.readAsArrayBuffer(fileInput.files[0]);
     }
 
     function startTimer() {
@@ -221,38 +218,45 @@
         controls.style.display = "none";
         endTest.style.display = "flex";
         addTestToHistory(loadedFileName);
-        localStorage.setItem('savedPdf', pdfData);
-        localStorage.setItem('savedAnswers', pdfQuestionsViewer.innerHTML);
+        saveAnswers();
     }
 
-    function startAnalysis() {
+    function analyzeTest() {
         endTest.style.display = "none";
-        analyzeContainer.style.display = "flex";
-        const savedPdf = localStorage.getItem('savedPdf');
-        const savedAnswers = localStorage.getItem('savedAnswers');
-        if (savedPdf && savedAnswers) {
-            const uint8Array = new Uint8Array(JSON.parse(savedPdf));
-            renderPDF(uint8Array.buffer, analyzePdfViewer);
-            analyzeAnswersViewer.innerHTML = savedAnswers;
-        } else {
-            alert("Нет сохранённых данных для анализа.");
-        }
+        pdfContainer.style.display = "flex";
+        analyzeControls.style.display = "block";
+        loadPDF(currentPDFData, true);
+        restoreAnswers();
     }
 
-    function renderPDF(data, container) {
-        container.innerHTML = "";
-        const loadingTask = pdfjsLib.getDocument({data});
-        loadingTask.promise.then(pdf => {
+    function finishAnalyze() {
+        pdfContainer.style.display = "none";
+        analyzeControls.style.display = "none";
+        uploadSection.style.display = "block";
+    }
+
+    function loadPDF(pdfData, isAnalysis = false) {
+        pdfTextViewer.innerHTML = '';
+        pdfQuestionsViewer.innerHTML = '';
+        pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 pdf.getPage(pageNum).then(page => {
                     const scale = 1.2;
                     const viewport = page.getViewport({scale});
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-                    container.appendChild(canvas);
-                    page.render({canvasContext: context, viewport});
+                    const canvas1 = document.createElement('canvas');
+                    const canvas2 = document.createElement('canvas');
+                    const context1 = canvas1.getContext('2d');
+                    const context2 = canvas2.getContext('2d');
+                    canvas1.height = viewport.height;
+                    canvas1.width = viewport.width;
+                    canvas2.height = viewport.height;
+                    canvas2.width = viewport.width;
+
+                    pdfTextViewer.appendChild(canvas1);
+                    pdfQuestionsViewer.appendChild(canvas2);
+
+                    page.render({canvasContext: context1, viewport});
+                    page.render({canvasContext: context2, viewport});
                 });
             }
         });
@@ -280,9 +284,31 @@
         savedHistory.push(name);
         localStorage.setItem('testHistory', JSON.stringify(savedHistory));
     }
+
+    function saveAnswers() {
+        const answers = [];
+        document.querySelectorAll('.editable-text').forEach(el => {
+            answers.push({ left: el.style.left, top: el.style.top, text: el.innerText });
+        });
+        localStorage.setItem('savedAnswers', JSON.stringify(answers));
+    }
+
+    function restoreAnswers() {
+        const answers = JSON.parse(localStorage.getItem('savedAnswers')) || [];
+        answers.forEach(answer => {
+            const editable = document.createElement('div');
+            editable.className = 'editable-text';
+            editable.contentEditable = true;
+            editable.style.left = answer.left;
+            editable.style.top = answer.top;
+            editable.innerText = answer.text;
+            pdfQuestionsViewer.appendChild(editable);
+        });
+    }
 </script>
 </body>
 </html>
+
 
 
 
