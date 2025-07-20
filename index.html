@@ -60,7 +60,7 @@
             margin: 15px;
         }
         #endTest {
-            display: none; /* <-- Скрыт по умолчанию */
+            display: none;
             height: calc(100% - 120px);
             flex: 1;
         }
@@ -110,6 +110,10 @@
     <input type="file" id="fileInput" accept="application/pdf">
     <p style="font-size: 18px;">Загрузите ваш IELTS PDF</p>
     <button onclick="startTest()">Старт</button>
+    <div id="testHistoryContainer">
+        <h2>📜 Мои тесты</h2>
+        <ul id="testHistory"></ul>
+    </div>
 </div>
 
 <div id="timer" style="display:none;">60:00</div>
@@ -127,8 +131,8 @@
 
 <div id="endTest">
     <div id="history">
-        <h2>📜 Мои тесты</h2>
-        <ul id="testHistory"></ul>
+        <h2>📖 Анализ теста</h2>
+        <button onclick="goToTestAnalysis()">Перейти к тесту</button>
     </div>
     <div id="newTest">
         <h2>✅ Тест завершён!</h2>
@@ -153,11 +157,12 @@
     let countdown;
     let totalTime = 60 * 60; // 60 минут
     let loadedFileName = "";
+    let highlights = [];
+    let answers = [];
 
-    // Загружаем историю из localStorage
     document.addEventListener('DOMContentLoaded', () => {
         const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
-        savedHistory.forEach(name => addTestToHistory(name));
+        savedHistory.forEach(test => addTestToHistory(test.name));
     });
 
     fileInput.addEventListener('change', function(e) {
@@ -227,6 +232,7 @@
         timerDisplay.style.display = "none";
         controls.style.display = "none";
         endTest.style.display = "flex";
+        saveTestResult();
         addTestToHistory(loadedFileName);
     }
 
@@ -241,20 +247,50 @@
         editable.style.left = x + 'px';
         editable.style.top = y + 'px';
         pdfQuestionsViewer.appendChild(editable);
-
         editable.focus();
+
+        editable.addEventListener('input', () => {
+            const answer = {
+                x, y, text: editable.textContent
+            };
+            answers.push(answer);
+        });
     }
 
     function addTestToHistory(name) {
-        if (!name) name = "Неизвестный тест";
         const li = document.createElement('li');
         li.textContent = name;
+        li.onclick = () => loadTestResult(name);
         testHistory.appendChild(li);
 
-        // Сохраняем в localStorage
         const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
-        savedHistory.push(name);
-        localStorage.setItem('testHistory', JSON.stringify(savedHistory));
+        if (!savedHistory.find(t => t.name === name)) {
+            savedHistory.push({name, date: new Date().toISOString()});
+            localStorage.setItem('testHistory', JSON.stringify(savedHistory));
+        }
+    }
+
+    function saveTestResult() {
+        const testResult = {
+            name: loadedFileName,
+            highlights,
+            answers
+        };
+        localStorage.setItem(loadedFileName, JSON.stringify(testResult));
+    }
+
+    function loadTestResult(name) {
+        const savedTest = JSON.parse(localStorage.getItem(name));
+        if (!savedTest) {
+            alert("Не удалось загрузить тест.");
+            return;
+        }
+        uploadSection.style.display = "none";
+        pdfContainer.style.display = "flex";
+        controls.style.display = "none";
+        timerDisplay.style.display = "none";
+        endTest.style.display = "none";
+        // Здесь можно будет восстановить PDF и ответы + подсветки
     }
 </script>
 </body>
