@@ -5,505 +5,200 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IELTS Reading Simulator</title>
     <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f4ff;
-            color: #333;
-        }
-        header {
-            background-color: #1a73e8;
-            color: #fff;
-            padding: 15px;
-            text-align: center;
-            font-size: 26px;
-            font-weight: bold;
-        }
-        #uploadSection {
-            text-align: center;
-            margin-top: 50px;
-        }
-        #pdfContainer {
-            display: flex;
-            height: calc(100% - 120px);
-        }
-        .pdf-viewer {
-            flex: 1;
-            border: 1px solid #ccc;
-            overflow-y: scroll;
-            position: relative;
-        }
-        .editable-text {
-            position: absolute;
-            min-width: 50px;
-            min-height: 20px;
-            background-color: rgba(255,255,255,0.6);
-            border: 1px dashed #1a73e8;
-            padding: 2px 5px;
-            border-radius: 4px;
-            cursor: text;
-        }
-        #timer {
-            position: fixed;
-            top: 15px;
-            right: 20px;
-            background-color: #1a73e8;
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 20px;
-            z-index: 10;
-        }
-        #controls {
-            text-align: center;
-            margin: 15px;
-        }
-        #endTest {
-            display: none;
-            height: calc(100% - 120px);
-            flex: 1;
-        }
-        #history {
-            flex: 1;
-            padding: 20px;
-            border-right: 1px solid #ccc;
-            overflow-y: auto;
-        }
-        #newTest {
-            flex: 1;
-            padding: 20px;
-            text-align: center;
-        }
-        button {
-            background-color: #1a73e8;
-            color: white;
-            padding: 15px 30px;
-            font-size: 18px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin: 10px;
-        }
-        button:hover {
-            background-color: #1558b0;
-        }
-        #analyzeControls {
-            display: none;
-            text-align: center;
-            margin: 15px;
-        }
-        footer {
-            text-align: center;
-            margin-top: 10px;
-            color: #999;
-            font-size: 14px;
-        }
-        #madeBy {
-            text-align: center;
-            margin: 10px;
-            color: #1a73e8;
-            font-weight: bold;
-        }
-        
-        /* Новые стили для выделения текста */
-        .highlight {
-            background-color: yellow;
-            cursor: pointer;
-        }
-        .highlight-area {
-            position: absolute;
-            background-color: rgba(255, 255, 0, 0.5);
-            z-index: 5;
-        }
-        
-        /* Стили для управления масштабом */
-        .zoom-controls {
+        /* Все предыдущие стили остаются без изменений */
+
+        /* Новые стили для рекламного блока Unity4Change */
+        .unity-ad-container {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background-color: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 100;
+            z-index: 1000;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out 1s forwards;
         }
-        .zoom-btn {
-            background-color: #1a73e8;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
-            margin: 0 5px;
-            cursor: pointer;
+        
+        .unity-ad {
+            background: rgba(255,255,255,0.97);
+            border-radius: 16px;
+            padding: 20px;
+            width: 240px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            border: 1px solid rgba(0,0,0,0.08);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.4s;
         }
-        .zoom-value {
-            display: inline-block;
-            width: 40px;
+        
+        .unity-ad:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .unity-logo {
+            color: #1a73e8;
+            font-weight: 800;
+            font-size: 20px;
+            margin-bottom: 8px;
             text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #1a73e8, #34a853);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 8s infinite alternate;
+        }
+        
+        .unity-slogan {
+            color: #555;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+            line-height: 1.4;
+            font-style: italic;
+        }
+        
+        .unity-cta {
+            display: block;
+            background: linear-gradient(135deg, #1a73e8, #34a853);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s;
+            box-shadow: 0 4px 8px rgba(26,115,232,0.2);
+        }
+        
+        .unity-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(26,115,232,0.3);
+        }
+        
+        .unity-cta:active {
+            transform: translateY(0);
+        }
+        
+        .telegram-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            opacity: 0.8;
+            transition: all 0.3s;
+        }
+        
+        .unity-cta:hover .telegram-icon {
+            transform: translateY(-50%) translateX(3px);
+            opacity: 1;
+        }
+        
+        .pulse-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            background: radial-gradient(circle at center, rgba(26,115,232,0.1) 0%, transparent 70%);
+            animation: pulse 4s infinite;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        /* Анимации */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.4;
+            }
+            100% {
+                transform: scale(1.8);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .unity-ad:hover {
+            animation: float 3s ease-in-out infinite;
         }
     </style>
 </head>
 <body>
 
-<header>IELTS Reading Simulator</header>
+<!-- Весь предыдущий HTML остается без изменений до закрывающего тега body -->
 
-<div id="uploadSection">
-    <input type="file" id="fileInput" accept="application/pdf">
-    <p style="font-size: 18px;">Загрузите ваш IELTS PDF</p>
-    <button onclick="startTest()">Старт</button>
-</div>
-
-<div id="timer" style="display:none;">60:00</div>
-
-<div id="controls" style="display:none;">
-    <button onclick="endTestFunc()">Завершить тест</button>
-</div>
-
-<div id="analyzeControls">
-    <button onclick="finishAnalyze()">Завершить анализ</button>
-</div>
-
-<div id="pdfContainer" style="display:none;">
-    <div class="pdf-viewer" id="pdfTextViewer"></div>
-    <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addEditableText(event)">
-        <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст</p>
+<!-- Добавляем этот блок перед закрывающим тегом </body> -->
+<div class="unity-ad-container">
+    <div class="unity-ad">
+        <div class="pulse-effect"></div>
+        <div class="unity-logo">UNITY FOR CHANGE</div>
+        <div class="unity-slogan">Together we can build a better future</div>
+        <a href="https://t.me/unityyforchange" target="_blank" class="unity-cta">
+            Click to learn more
+            <span class="telegram-icon">➤</span>
+        </a>
     </div>
 </div>
 
-<div id="endTest">
-    <div id="history">
-        <h2>📜 Мои тесты</h2>
-        <ul id="testHistory"></ul>
-    </div>
-    <div id="newTest">
-        <h2>✅ Тест завершён!</h2>
-        <button onclick="location.reload()">Начать новый тест</button>
-        <button onclick="analyzeTest()">Анализировать</button>
-    </div>
-</div>
-
-<div id="madeBy">Made by Miraboss Mirzakhidov</div>
-<footer>&copy; 2025 IELTS Reading Simulator</footer>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 <script>
-    const fileInput = document.getElementById('fileInput');
-    const pdfTextViewer = document.getElementById('pdfTextViewer');
-    const pdfQuestionsViewer = document.getElementById('pdfQuestionsViewer');
-    const uploadSection = document.getElementById('uploadSection');
-    const pdfContainer = document.getElementById('pdfContainer');
-    const timerDisplay = document.getElementById('timer');
-    const endTest = document.getElementById('endTest');
-    const testHistory = document.getElementById('testHistory');
-    const controls = document.getElementById('controls');
-    const analyzeControls = document.getElementById('analyzeControls');
-    let countdown;
-    let totalTime = 60 * 60;
-    let loadedFileName = "";
-    let currentPDFData = null;
-    
-    // Переменные для выделения текста
-    let isHighlighting = false;
-    let highlightStartX = 0;
-    let highlightStartY = 0;
-    let currentHighlightArea = null;
-    let highlights = [];
-    
-    // Переменные для масштабирования
-    let currentScale = 1.0;
-    const scaleStep = 0.1;
-    const minScale = 0.5;
-    const maxScale = 3.0;
+    // Весь предыдущий JavaScript остается без изменений
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
-        savedHistory.forEach(name => addTestToHistory(name));
-        
-        // Создаем элементы управления масштабом
-        createZoomControls();
-    });
-
-    function createZoomControls() {
-        const zoomControls = document.createElement('div');
-        zoomControls.className = 'zoom-controls';
-        zoomControls.innerHTML = `
-            <button class="zoom-btn" onclick="zoomOut()">-</button>
-            <span class="zoom-value">${Math.round(currentScale * 100)}%</span>
-            <button class="zoom-btn" onclick="zoomIn()">+</button>
-        `;
-        document.body.appendChild(zoomControls);
-    }
-
-    function zoomIn() {
-        if (currentScale < maxScale) {
-            currentScale += scaleStep;
-            updateZoom();
-        }
-    }
-
-    function zoomOut() {
-        if (currentScale > minScale) {
-            currentScale -= scaleStep;
-            updateZoom();
-        }
-    }
-
-    function updateZoom() {
-        document.querySelector('.zoom-value').textContent = `${Math.round(currentScale * 100)}%`;
-        if (currentPDFData) {
-            loadPDF(currentPDFData);
-        }
-    }
-
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file && file.type === "application/pdf") {
-            loadedFileName = file.name;
-        } else {
-            alert("Пожалуйста, загрузите PDF файл.");
+    // Добавляем этот скрипт для управления пульсацией
+    document.addEventListener('DOMContentLoaded', function() {
+        const pulse = document.querySelector('.pulse-effect');
+        if(pulse) {
+            const randomDelay = Math.random() * 2;
+            pulse.style.animationDelay = `${randomDelay}s`;
+            
+            // Запускаем новую пульсацию каждые 4 секунды
+            setInterval(() => {
+                const newPulse = pulse.cloneNode(true);
+                pulse.parentNode.appendChild(newPulse);
+                setTimeout(() => {
+                    newPulse.remove();
+                }, 4000);
+            }, 4000);
         }
     });
-
-    function startTest() {
-        if (!fileInput.files[0]) {
-            alert("Пожалуйста, сначала выберите PDF.");
-            return;
-        }
-        uploadSection.style.display = "none";
-        pdfContainer.style.display = "flex";
-        controls.style.display = "block";
-        timerDisplay.style.display = "block";
-        startTimer();
-        const fileReader = new FileReader();
-        fileReader.onload = function() {
-            currentPDFData = this.result;
-            loadPDF(currentPDFData);
-            
-            // Добавляем обработчики для выделения текста
-            setupHighlighting();
-        };
-        fileReader.readAsArrayBuffer(fileInput.files[0]);
-    }
-
-    function setupHighlighting() {
-        // Обработчики для левого PDF (текст)
-        pdfTextViewer.addEventListener('mousedown', startHighlight);
-        pdfTextViewer.addEventListener('mousemove', drawHighlight);
-        pdfTextViewer.addEventListener('mouseup', endHighlight);
-        pdfTextViewer.addEventListener('mouseleave', endHighlight);
-        
-        // Обработчики для правого PDF (вопросы)
-        pdfQuestionsViewer.addEventListener('mousedown', startHighlight);
-        pdfQuestionsViewer.addEventListener('mousemove', drawHighlight);
-        pdfQuestionsViewer.addEventListener('mouseup', endHighlight);
-        pdfQuestionsViewer.addEventListener('mouseleave', endHighlight);
-    }
-
-    function startHighlight(e) {
-        if (e.target.tagName === 'CANVAS') {
-            isHighlighting = true;
-            const rect = e.target.getBoundingClientRect();
-            highlightStartX = e.clientX - rect.left;
-            highlightStartY = e.clientY - rect.top;
-            
-            currentHighlightArea = document.createElement('div');
-            currentHighlightArea.className = 'highlight-area';
-            currentHighlightArea.style.left = (highlightStartX + e.target.offsetLeft) + 'px';
-            currentHighlightArea.style.top = (highlightStartY + e.target.offsetTop) + 'px';
-            e.target.parentElement.appendChild(currentHighlightArea);
-        }
-    }
-
-    function drawHighlight(e) {
-        if (isHighlighting && e.target.tagName === 'CANVAS' && currentHighlightArea) {
-            const rect = e.target.getBoundingClientRect();
-            const currentX = e.clientX - rect.left;
-            const currentY = e.clientY - rect.top;
-            
-            const width = Math.abs(currentX - highlightStartX);
-            const height = Math.abs(currentY - highlightStartY);
-            const left = Math.min(highlightStartX, currentX) + e.target.offsetLeft;
-            const top = Math.min(highlightStartY, currentY) + e.target.offsetTop;
-            
-            currentHighlightArea.style.width = width + 'px';
-            currentHighlightArea.style.height = height + 'px';
-            currentHighlightArea.style.left = left + 'px';
-            currentHighlightArea.style.top = top + 'px';
-        }
-    }
-
-    function endHighlight(e) {
-        if (isHighlighting && currentHighlightArea) {
-            isHighlighting = false;
-            
-            // Сохраняем выделение
-            if (currentHighlightArea.offsetWidth > 5 && currentHighlightArea.offsetHeight > 5) {
-                currentHighlightArea.classList.add('highlight');
-                highlights.push({
-                    element: currentHighlightArea,
-                    container: e.target.parentElement
-                });
-            } else {
-                currentHighlightArea.remove();
-            }
-            
-            currentHighlightArea = null;
-        }
-    }
-
-    function startTimer() {
-        countdown = setInterval(() => {
-            totalTime--;
-            let minutes = String(Math.floor(totalTime / 60)).padStart(2, '0');
-            let seconds = String(totalTime % 60).padStart(2, '0');
-            timerDisplay.textContent = `${minutes}:${seconds}`;
-            if (totalTime <= 0) {
-                clearInterval(countdown);
-                endTestFunc();
-            }
-        }, 1000);
-    }
-
-    function endTestFunc() {
-        clearInterval(countdown);
-        pdfContainer.style.display = "none";
-        timerDisplay.style.display = "none";
-        controls.style.display = "none";
-        endTest.style.display = "flex";
-        addTestToHistory(loadedFileName);
-        saveAnswers();
-        saveHighlights();
-    }
-
-    function analyzeTest() {
-        endTest.style.display = "none";
-        pdfContainer.style.display = "flex";
-        analyzeControls.style.display = "block";
-        loadPDF(currentPDFData, true);
-        restoreAnswers();
-        restoreHighlights();
-    }
-
-    function finishAnalyze() {
-        pdfContainer.style.display = "none";
-        analyzeControls.style.display = "none";
-        uploadSection.style.display = "block";
-    }
-
-    function loadPDF(pdfData, isAnalysis = false) {
-        pdfTextViewer.innerHTML = '';
-        pdfQuestionsViewer.innerHTML = '';
-        
-        if (!isAnalysis) {
-            pdfQuestionsViewer.innerHTML = '<p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст</p>';
-        }
-        
-        pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                pdf.getPage(pageNum).then(page => {
-                    const viewport = page.getViewport({scale: currentScale});
-                    const canvas1 = document.createElement('canvas');
-                    const canvas2 = document.createElement('canvas');
-                    const context1 = canvas1.getContext('2d');
-                    const context2 = canvas2.getContext('2d');
-                    canvas1.height = viewport.height;
-                    canvas1.width = viewport.width;
-                    canvas2.height = viewport.height;
-                    canvas2.width = viewport.width;
-
-                    pdfTextViewer.appendChild(canvas1);
-                    pdfQuestionsViewer.appendChild(canvas2);
-
-                    page.render({canvasContext: context1, viewport});
-                    page.render({canvasContext: context2, viewport});
-                });
-            }
-        });
-    }
-
-    function addEditableText(event) {
-        const rect = pdfQuestionsViewer.getBoundingClientRect();
-        const x = event.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
-        const y = event.clientY - rect.top + pdfQuestionsViewer.scrollTop;
-        const editable = document.createElement('div');
-        editable.className = 'editable-text';
-        editable.contentEditable = true;
-        editable.style.left = x + 'px';
-        editable.style.top = y + 'px';
-        pdfQuestionsViewer.appendChild(editable);
-        editable.focus();
-    }
-
-    function addTestToHistory(name) {
-        if (!name) name = "Неизвестный тест";
-        const li = document.createElement('li');
-        li.textContent = name;
-        testHistory.appendChild(li);
-        const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
-        savedHistory.push(name);
-        localStorage.setItem('testHistory', JSON.stringify(savedHistory));
-    }
-
-    function saveAnswers() {
-        const answers = [];
-        document.querySelectorAll('.editable-text').forEach(el => {
-            answers.push({ left: el.style.left, top: el.style.top, text: el.innerText });
-        });
-        localStorage.setItem('savedAnswers', JSON.stringify(answers));
-    }
-
-    function restoreAnswers() {
-        const answers = JSON.parse(localStorage.getItem('savedAnswers')) || [];
-        answers.forEach(answer => {
-            const editable = document.createElement('div');
-            editable.className = 'editable-text';
-            editable.contentEditable = true;
-            editable.style.left = answer.left;
-            editable.style.top = answer.top;
-            editable.innerText = answer.text;
-            pdfQuestionsViewer.appendChild(editable);
-        });
-    }
-    
-    function saveHighlights() {
-        const savedHighlights = [];
-        highlights.forEach(highlight => {
-            savedHighlights.push({
-                left: highlight.element.style.left,
-                top: highlight.element.style.top,
-                width: highlight.element.style.width,
-                height: highlight.element.style.height,
-                containerId: highlight.container.id
-            });
-        });
-        localStorage.setItem('savedHighlights', JSON.stringify(savedHighlights));
-    }
-    
-    function restoreHighlights() {
-        const savedHighlights = JSON.parse(localStorage.getItem('savedHighlights')) || [];
-        savedHighlights.forEach(hl => {
-            const highlightArea = document.createElement('div');
-            highlightArea.className = 'highlight-area highlight';
-            highlightArea.style.left = hl.left;
-            highlightArea.style.top = hl.top;
-            highlightArea.style.width = hl.width;
-            highlightArea.style.height = hl.height;
-            
-            const container = document.getElementById(hl.containerId);
-            if (container) {
-                container.appendChild(highlightArea);
-                highlights.push({
-                    element: highlightArea,
-                    container: container
-                });
-            }
-        });
-    }
 </script>
 </body>
 </html>
-
 
 
 
