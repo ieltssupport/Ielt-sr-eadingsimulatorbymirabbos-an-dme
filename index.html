@@ -271,6 +271,43 @@
         .unity-ad:hover {
             animation: float 3s ease-in-out infinite;
         }
+        .unity-close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+            border: none;
+            color: #555;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .unity-close-btn:hover {
+            background: rgba(0,0,0,0.2);
+            transform: rotate(90deg);
+        }
+        .unity-ad-container.hide {
+            animation: fadeOutDown 0.6s ease forwards;
+        }
+        @keyframes fadeOutDown {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+                visibility: hidden;
+            }
+        }
     </style>
 </head>
 <body>
@@ -315,6 +352,7 @@
     <footer>&copy; 2025 IELTS Reading Simulator</footer>
 
     <div class="unity-ad-container">
+        <button class="unity-close-btn" onclick="hideAd()">×</button>
         <div class="unity-ad">
             <div class="pulse-effect"></div>
             <div class="unity-logo">UNITY FOR CHANGE</div>
@@ -378,7 +416,25 @@
                     }, 4000);
                 }, 4000);
             }
+
+            // Проверяем, была ли закрыта реклама ранее
+            if(localStorage.getItem('unityAdClosed') === 'true') {
+                document.querySelector('.unity-ad-container').style.display = 'none';
+            }
         });
+
+        function hideAd() {
+            const adContainer = document.querySelector('.unity-ad-container');
+            adContainer.classList.add('hide');
+            
+            // Сохраняем в localStorage, что реклама была закрыта
+            localStorage.setItem('unityAdClosed', 'true');
+            
+            // Удаляем элемент после завершения анимации
+            setTimeout(() => {
+                adContainer.style.display = 'none';
+            }, 600);
+        }
 
         function zoomIn() {
             if (currentScale < maxScale) {
