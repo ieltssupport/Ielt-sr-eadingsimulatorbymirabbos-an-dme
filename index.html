@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IELTS Reading Simulator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
     <style>
         html, body {
             height: 100%;
@@ -32,25 +31,18 @@
         .pdf-viewer {
             flex: 1;
             border: 1px solid #ccc;
-            overflow: auto;
+            overflow-y: scroll;
             position: relative;
-        }
-        canvas {
-            display: block;
-            margin: auto;
         }
         .editable-text {
             position: absolute;
             min-width: 50px;
             min-height: 20px;
-            background-color: rgba(255, 255, 255, 0.6);
+            background-color: rgba(255,255,255,0.6);
             border: 1px dashed #1a73e8;
             padding: 2px 5px;
             border-radius: 4px;
             cursor: text;
-        }
-        .highlight {
-            background-color: yellow;
         }
         #timer {
             position: fixed;
@@ -113,6 +105,43 @@
             color: #1a73e8;
             font-weight: bold;
         }
+        
+        /* Новые стили для выделения текста */
+        .highlight {
+            background-color: yellow;
+            cursor: pointer;
+        }
+        .highlight-area {
+            position: absolute;
+            background-color: rgba(255, 255, 0, 0.5);
+            z-index: 5;
+        }
+        
+        /* Стили для управления масштабом */
+        .zoom-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+        .zoom-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .zoom-value {
+            display: inline-block;
+            width: 40px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -120,8 +149,8 @@
 <header>IELTS Reading Simulator</header>
 
 <div id="uploadSection">
-    <input type="file" id="fileInput" accept="application/pdf" multiple>
-    <p style="font-size: 18px;">Загрузите ваши IELTS PDF (можно два сразу)</p>
+    <input type="file" id="fileInput" accept="application/pdf">
+    <p style="font-size: 18px;">Загрузите ваш IELTS PDF</p>
     <button onclick="startTest()">Старт</button>
 </div>
 
@@ -157,6 +186,7 @@
 <div id="madeBy">Made by Miraboss Mirzakhidov</div>
 <footer>&copy; 2025 IELTS Reading Simulator</footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 <script>
     const fileInput = document.getElementById('fileInput');
     const pdfTextViewer = document.getElementById('pdfTextViewer');
@@ -170,17 +200,73 @@
     const analyzeControls = document.getElementById('analyzeControls');
     let countdown;
     let totalTime = 60 * 60;
-    let loadedFileNames = [];
-    let currentPDFData = [];
-    let scale = 1.2;
+    let loadedFileName = "";
+    let currentPDFData = null;
+    
+    // Переменные для выделения текста
+    let isHighlighting = false;
+    let highlightStartX = 0;
+    let highlightStartY = 0;
+    let currentHighlightArea = null;
+    let highlights = [];
+    
+    // Переменные для масштабирования
+    let currentScale = 1.0;
+    const scaleStep = 0.1;
+    const minScale = 0.5;
+    const maxScale = 3.0;
 
     document.addEventListener('DOMContentLoaded', () => {
         const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
         savedHistory.forEach(name => addTestToHistory(name));
+        
+        // Создаем элементы управления масштабом
+        createZoomControls();
+    });
+
+    function createZoomControls() {
+        const zoomControls = document.createElement('div');
+        zoomControls.className = 'zoom-controls';
+        zoomControls.innerHTML = `
+            <button class="zoom-btn" onclick="zoomOut()">-</button>
+            <span class="zoom-value">${Math.round(currentScale * 100)}%</span>
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+        `;
+        document.body.appendChild(zoomControls);
+    }
+
+    function zoomIn() {
+        if (currentScale < maxScale) {
+            currentScale += scaleStep;
+            updateZoom();
+        }
+    }
+
+    function zoomOut() {
+        if (currentScale > minScale) {
+            currentScale -= scaleStep;
+            updateZoom();
+        }
+    }
+
+    function updateZoom() {
+        document.querySelector('.zoom-value').textContent = `${Math.round(currentScale * 100)}%`;
+        if (currentPDFData) {
+            loadPDF(currentPDFData);
+        }
+    }
+
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type === "application/pdf") {
+            loadedFileName = file.name;
+        } else {
+            alert("Пожалуйста, загрузите PDF файл.");
+        }
     });
 
     function startTest() {
-        if (!fileInput.files.length) {
+        if (!fileInput.files[0]) {
             alert("Пожалуйста, сначала выберите PDF.");
             return;
         }
@@ -189,17 +275,81 @@
         controls.style.display = "block";
         timerDisplay.style.display = "block";
         startTimer();
+        const fileReader = new FileReader();
+        fileReader.onload = function() {
+            currentPDFData = this.result;
+            loadPDF(currentPDFData);
+            
+            // Добавляем обработчики для выделения текста
+            setupHighlighting();
+        };
+        fileReader.readAsArrayBuffer(fileInput.files[0]);
+    }
 
-        [...fileInput.files].forEach((file, index) => {
-            const fileReader = new FileReader();
-            fileReader.onload = function () {
-                currentPDFData[index] = this.result;
-                loadedFileNames[index] = file.name;
-                const viewer = index === 0 ? pdfTextViewer : pdfQuestionsViewer;
-                loadPDF(currentPDFData[index], viewer);
-            };
-            fileReader.readAsArrayBuffer(file);
-        });
+    function setupHighlighting() {
+        // Обработчики для левого PDF (текст)
+        pdfTextViewer.addEventListener('mousedown', startHighlight);
+        pdfTextViewer.addEventListener('mousemove', drawHighlight);
+        pdfTextViewer.addEventListener('mouseup', endHighlight);
+        pdfTextViewer.addEventListener('mouseleave', endHighlight);
+        
+        // Обработчики для правого PDF (вопросы)
+        pdfQuestionsViewer.addEventListener('mousedown', startHighlight);
+        pdfQuestionsViewer.addEventListener('mousemove', drawHighlight);
+        pdfQuestionsViewer.addEventListener('mouseup', endHighlight);
+        pdfQuestionsViewer.addEventListener('mouseleave', endHighlight);
+    }
+
+    function startHighlight(e) {
+        if (e.target.tagName === 'CANVAS') {
+            isHighlighting = true;
+            const rect = e.target.getBoundingClientRect();
+            highlightStartX = e.clientX - rect.left + e.target.parentElement.scrollLeft;
+            highlightStartY = e.clientY - rect.top + e.target.parentElement.scrollTop;
+            
+            currentHighlightArea = document.createElement('div');
+            currentHighlightArea.className = 'highlight-area';
+            currentHighlightArea.style.left = highlightStartX + 'px';
+            currentHighlightArea.style.top = highlightStartY + 'px';
+            e.target.parentElement.appendChild(currentHighlightArea);
+        }
+    }
+
+    function drawHighlight(e) {
+        if (isHighlighting && e.target.tagName === 'CANVAS' && currentHighlightArea) {
+            const rect = e.target.getBoundingClientRect();
+            const currentX = e.clientX - rect.left + e.target.parentElement.scrollLeft;
+            const currentY = e.clientY - rect.top + e.target.parentElement.scrollTop;
+            
+            const width = Math.abs(currentX - highlightStartX);
+            const height = Math.abs(currentY - highlightStartY);
+            const left = Math.min(highlightStartX, currentX);
+            const top = Math.min(highlightStartY, currentY);
+            
+            currentHighlightArea.style.width = width + 'px';
+            currentHighlightArea.style.height = height + 'px';
+            currentHighlightArea.style.left = left + 'px';
+            currentHighlightArea.style.top = top + 'px';
+        }
+    }
+
+    function endHighlight(e) {
+        if (isHighlighting && currentHighlightArea) {
+            isHighlighting = false;
+            
+            // Сохраняем выделение
+            if (currentHighlightArea.offsetWidth > 5 && currentHighlightArea.offsetHeight > 5) {
+                currentHighlightArea.classList.add('highlight');
+                highlights.push({
+                    element: currentHighlightArea,
+                    container: e.target.parentElement
+                });
+            } else {
+                currentHighlightArea.remove();
+            }
+            
+            currentHighlightArea = null;
+        }
     }
 
     function startTimer() {
@@ -221,19 +371,18 @@
         timerDisplay.style.display = "none";
         controls.style.display = "none";
         endTest.style.display = "flex";
-        loadedFileNames.forEach(name => addTestToHistory(name));
+        addTestToHistory(loadedFileName);
         saveAnswers();
+        saveHighlights();
     }
 
     function analyzeTest() {
         endTest.style.display = "none";
         pdfContainer.style.display = "flex";
         analyzeControls.style.display = "block";
-        currentPDFData.forEach((data, index) => {
-            const viewer = index === 0 ? pdfTextViewer : pdfQuestionsViewer;
-            loadPDF(data, viewer);
-        });
+        loadPDF(currentPDFData, true);
         restoreAnswers();
+        restoreHighlights();
     }
 
     function finishAnalyze() {
@@ -242,38 +391,36 @@
         uploadSection.style.display = "block";
     }
 
-    function loadPDF(pdfData, container) {
-        container.innerHTML = '';
-        pdfjsLib.getDocument({ data: pdfData }).promise.then(pdf => {
+    function loadPDF(pdfData, isAnalysis = false) {
+        pdfTextViewer.innerHTML = '';
+        pdfQuestionsViewer.innerHTML = '';
+        
+        if (!isAnalysis) {
+            pdfQuestionsViewer.innerHTML = '<p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст</p>';
+        }
+        
+        pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 pdf.getPage(pageNum).then(page => {
-                    const viewport = page.getViewport({ scale });
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-                    container.appendChild(canvas);
-                    page.render({ canvasContext: context, viewport });
+                    const viewport = page.getViewport({scale: currentScale});
+                    const canvas1 = document.createElement('canvas');
+                    const canvas2 = document.createElement('canvas');
+                    const context1 = canvas1.getContext('2d');
+                    const context2 = canvas2.getContext('2d');
+                    canvas1.height = viewport.height;
+                    canvas1.width = viewport.width;
+                    canvas2.height = viewport.height;
+                    canvas2.width = viewport.width;
+
+                    pdfTextViewer.appendChild(canvas1);
+                    pdfQuestionsViewer.appendChild(canvas2);
+
+                    page.render({canvasContext: context1, viewport});
+                    page.render({canvasContext: context2, viewport});
                 });
             }
         });
     }
-
-    // 🔥 Highlight текста
-    [pdfTextViewer, pdfQuestionsViewer].forEach(viewer => {
-        viewer.addEventListener('mouseup', () => {
-            const selection = window.getSelection();
-            if (selection && selection.toString().trim().length > 0) {
-                const range = selection.getRangeAt(0);
-                const span = document.createElement('span');
-                span.className = 'highlight';
-                span.textContent = range.toString();
-                range.deleteContents();
-                range.insertNode(span);
-                selection.removeAllRanges();
-            }
-        });
-    });
 
     function addEditableText(event) {
         const rect = pdfQuestionsViewer.getBoundingClientRect();
@@ -316,6 +463,41 @@
             editable.style.top = answer.top;
             editable.innerText = answer.text;
             pdfQuestionsViewer.appendChild(editable);
+        });
+    }
+    
+    function saveHighlights() {
+        const savedHighlights = [];
+        highlights.forEach(highlight => {
+            savedHighlights.push({
+                left: highlight.element.style.left,
+                top: highlight.element.style.top,
+                width: highlight.element.style.width,
+                height: highlight.element.style.height,
+                containerId: highlight.container.id
+            });
+        });
+        localStorage.setItem('savedHighlights', JSON.stringify(savedHighlights));
+    }
+    
+    function restoreHighlights() {
+        const savedHighlights = JSON.parse(localStorage.getItem('savedHighlights')) || [];
+        savedHighlights.forEach(hl => {
+            const highlightArea = document.createElement('div');
+            highlightArea.className = 'highlight-area highlight';
+            highlightArea.style.left = hl.left;
+            highlightArea.style.top = hl.top;
+            highlightArea.style.width = hl.width;
+            highlightArea.style.height = hl.height;
+            
+            const container = document.getElementById(hl.containerId);
+            if (container) {
+                container.appendChild(highlightArea);
+                highlights.push({
+                    element: highlightArea,
+                    container: container
+                });
+            }
         });
     }
 </script>
