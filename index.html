@@ -24,6 +24,18 @@
             text-align: center;
             margin-top: 50px;
         }
+        #uploadSection p.welcome {
+            font-size: 22px;
+            color: #1a73e8;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        #uploadSection p.instruction {
+            font-size: 18px;
+            color: #555;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
         #pdfContainer {
             display: flex;
             height: calc(100% - 120px);
@@ -84,9 +96,52 @@
             border-radius: 10px;
             cursor: pointer;
             margin: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         button:hover {
             background-color: #1558b0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        /* Анимация для кнопки Start */
+        #startBtn {
+            animation: pulse 2s infinite;
+        }
+        /* Анимация для кнопки Завершить тест */
+        #endTestBtn:hover {
+            animation: shake 0.5s;
+        }
+        /* Анимация для кнопок Начать новый тест и Анализировать */
+        .result-btn:hover {
+            animation: bounce 0.5s;
+        }
+        /* Анимация для кнопки Завершить анализ */
+        #finishAnalyzeBtn:hover {
+            animation: flip 0.6s;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes flip {
+            0% { transform: rotateY(0); }
+            50% { transform: rotateY(180deg); }
+            100% { transform: rotateY(0); }
         }
         #analyzeControls {
             display: none;
@@ -229,48 +284,6 @@
             pointer-events: none;
             opacity: 0;
         }
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        @keyframes pulse {
-            0% {
-                transform: scale(0.95);
-                opacity: 0;
-            }
-            50% {
-                opacity: 0.4;
-            }
-            100% {
-                transform: scale(1.8);
-                opacity: 0;
-            }
-        }
-        @keyframes gradientShift {
-            0% {
-                background-position: 0% 50%;
-            }
-            100% {
-                background-position: 100% 50%;
-            }
-        }
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-5px);
-            }
-        }
-        .unity-ad:hover {
-            animation: float 3s ease-in-out infinite;
-        }
         .unity-close-btn {
             position: absolute;
             top: 8px;
@@ -297,6 +310,24 @@
         .unity-ad-container.hide {
             animation: fadeOutDown 0.6s ease forwards;
         }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 100% 50%;
+            }
+        }
         @keyframes fadeOutDown {
             from {
                 opacity: 1;
@@ -315,18 +346,19 @@
 
     <div id="uploadSection">
         <input type="file" id="fileInput" accept="application/pdf">
-        <p style="font-size: 18px;">Загрузите ваш IELTS PDF</p>
-        <button onclick="startTest()">Старт</button>
+        <p class="welcome">Добро пожаловать на IELTS Reading Simulator</p>
+        <p class="instruction">Загрузите ваш IELTS Reading PDF, чтобы начать</p>
+        <button id="startBtn" onclick="startTest()">Старт</button>
     </div>
 
     <div id="timer" style="display:none;">60:00</div>
 
     <div id="controls" style="display:none;">
-        <button onclick="endTestFunc()">Завершить тест</button>
+        <button id="endTestBtn" onclick="endTestFunc()">Завершить тест</button>
     </div>
 
     <div id="analyzeControls">
-        <button onclick="finishAnalyze()">Завершить анализ</button>
+        <button id="finishAnalyzeBtn" onclick="finishAnalyze()">Завершить анализ</button>
     </div>
 
     <div id="pdfContainer" style="display:none;">
@@ -343,8 +375,8 @@
         </div>
         <div id="newTest">
             <h2>✅ Тест завершён!</h2>
-            <button onclick="location.reload()">Начать новый тест</button>
-            <button onclick="analyzeTest()">Анализировать</button>
+            <button class="result-btn" onclick="location.reload()">Начать новый тест</button>
+            <button class="result-btn" onclick="analyzeTest()">Анализировать</button>
         </div>
     </div>
 
@@ -416,21 +448,12 @@
                     }, 4000);
                 }, 4000);
             }
-
-            // Проверяем, была ли закрыта реклама ранее
-            if(localStorage.getItem('unityAdClosed') === 'true') {
-                document.querySelector('.unity-ad-container').style.display = 'none';
-            }
         });
 
         function hideAd() {
             const adContainer = document.querySelector('.unity-ad-container');
             adContainer.classList.add('hide');
             
-            // Сохраняем в localStorage, что реклама была закрыта
-            localStorage.setItem('unityAdClosed', 'true');
-            
-            // Удаляем элемент после завершения анимации
             setTimeout(() => {
                 adContainer.style.display = 'none';
             }, 600);
@@ -698,7 +721,6 @@
     </script>
 </body>
 </html>
-
 
 
 
