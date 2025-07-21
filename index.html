@@ -169,7 +169,31 @@
             background-color: rgba(255, 255, 0, 0.5);
             z-index: 5;
         }
-        /* Удалены стили zoom-controls */
+        .zoom-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            display: none; /* По умолчанию скрыты */
+        }
+        .zoom-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .zoom-value {
+            display: inline-block;
+            width: 40px;
+            text-align: center;
+        }
         .unity-ad-container {
             position: fixed;
             bottom: 20px;
@@ -360,6 +384,12 @@
     <div id="madeBy">Made by Miraboss Mirzakhidov</div>
     <footer>&copy; 2025 IELTS Reading Simulator</footer>
 
+    <div class="zoom-controls" id="zoomControls">
+        <button class="zoom-btn" onclick="zoomOut()">-</button>
+        <span class="zoom-value">100%</span>
+        <button class="zoom-btn" onclick="zoomIn()">+</button>
+    </div>
+
     <div class="unity-ad-container">
         <button class="unity-close-btn" onclick="hideAd()">×</button>
         <div class="unity-ad">
@@ -385,6 +415,7 @@
         const testHistory = document.getElementById('testHistory');
         const controls = document.getElementById('controls');
         const analyzeControls = document.getElementById('analyzeControls');
+        const zoomControls = document.getElementById('zoomControls');
         let countdown;
         let totalTime = 60 * 60;
         let loadedFileName = "";
@@ -442,6 +473,7 @@
         }
 
         function updateZoom() {
+            document.querySelector('.zoom-value').textContent = `${Math.round(currentScale * 100)}%`;
             if (currentPDFData) {
                 loadPDF(currentPDFData);
             }
@@ -465,6 +497,7 @@
             pdfContainer.style.display = "flex";
             controls.style.display = "block";
             timerDisplay.style.display = "block";
+            zoomControls.style.display = "block"; // Показываем кнопки зума
             startTimer();
             const fileReader = new FileReader();
             fileReader.onload = function() {
@@ -555,6 +588,7 @@
             pdfContainer.style.display = "none";
             timerDisplay.style.display = "none";
             controls.style.display = "none";
+            zoomControls.style.display = "none"; // Скрываем кнопки зума
             endTest.style.display = "flex";
             addTestToHistory(loadedFileName);
             saveAnswers();
@@ -565,6 +599,7 @@
             endTest.style.display = "none";
             pdfContainer.style.display = "flex";
             analyzeControls.style.display = "block";
+            zoomControls.style.display = "block"; // Показываем кнопки зума при анализе
             loadPDF(currentPDFData, true);
             restoreAnswers();
             restoreHighlights();
@@ -573,6 +608,7 @@
         function finishAnalyze() {
             pdfContainer.style.display = "none";
             analyzeControls.style.display = "none";
+            zoomControls.style.display = "none"; // Скрываем кнопки зума
             uploadSection.style.display = "block";
         }
 
