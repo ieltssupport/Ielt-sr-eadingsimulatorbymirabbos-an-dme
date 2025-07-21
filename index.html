@@ -304,13 +304,13 @@
         if (e.target.tagName === 'CANVAS') {
             isHighlighting = true;
             const rect = e.target.getBoundingClientRect();
-            highlightStartX = e.clientX - rect.left + e.target.parentElement.scrollLeft;
-            highlightStartY = e.clientY - rect.top + e.target.parentElement.scrollTop;
+            highlightStartX = e.clientX - rect.left;
+            highlightStartY = e.clientY - rect.top;
             
             currentHighlightArea = document.createElement('div');
             currentHighlightArea.className = 'highlight-area';
-            currentHighlightArea.style.left = highlightStartX + 'px';
-            currentHighlightArea.style.top = highlightStartY + 'px';
+            currentHighlightArea.style.left = (highlightStartX + e.target.offsetLeft) + 'px';
+            currentHighlightArea.style.top = (highlightStartY + e.target.offsetTop) + 'px';
             e.target.parentElement.appendChild(currentHighlightArea);
         }
     }
@@ -318,13 +318,13 @@
     function drawHighlight(e) {
         if (isHighlighting && e.target.tagName === 'CANVAS' && currentHighlightArea) {
             const rect = e.target.getBoundingClientRect();
-            const currentX = e.clientX - rect.left + e.target.parentElement.scrollLeft;
-            const currentY = e.clientY - rect.top + e.target.parentElement.scrollTop;
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
             
             const width = Math.abs(currentX - highlightStartX);
             const height = Math.abs(currentY - highlightStartY);
-            const left = Math.min(highlightStartX, currentX);
-            const top = Math.min(highlightStartY, currentY);
+            const left = Math.min(highlightStartX, currentX) + e.target.offsetLeft;
+            const top = Math.min(highlightStartY, currentY) + e.target.offsetTop;
             
             currentHighlightArea.style.width = width + 'px';
             currentHighlightArea.style.height = height + 'px';
