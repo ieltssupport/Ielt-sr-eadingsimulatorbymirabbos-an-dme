@@ -609,12 +609,13 @@
         let isAnalysisMode = false;
         
         // Annotation storage
+        const STORAGE_KEY = 'ieltsReadingData_v3';
         let highlights = {
-            textViewer: [],
-            questionsViewer: []
+            left: [],  // For pdfTextViewer
+            right: []  // For pdfQuestionsViewer
         };
         let textAnnotations = [];
-        
+
         // Dark mode toggle
         darkModeToggle.addEventListener('change', function() {
             document.body.classList.toggle('dark-mode', this.checked);
@@ -683,11 +684,11 @@
 
         // Initialize highlighting for both viewers
         function setupHighlighting() {
-            setupHighlightingForViewer(pdfTextViewer, 'textViewer');
-            setupHighlightingForViewer(pdfQuestionsViewer, 'questionsViewer');
+            setupHighlightingForViewer(pdfTextViewer, 'left');
+            setupHighlightingForViewer(pdfQuestionsViewer, 'right');
         }
 
-        function setupHighlightingForViewer(viewer, viewerType) {
+        function setupHighlightingForViewer(viewer, side) {
             let isDragging = false;
             let startX, startY;
             let currentHighlight = null;
@@ -700,7 +701,7 @@
                 startX = e.clientX - rect.left + viewer.scrollLeft;
                 startY = e.clientY - rect.top + viewer.scrollTop;
                 
-                currentHighlight = createHighlight(startX, startY, 0, 0, viewer, viewerType);
+                currentHighlight = createHighlight(startX, startY, 0, 0, viewer, side);
                 e.preventDefault();
             });
 
@@ -733,10 +734,10 @@
             viewer.addEventListener('mouseup', () => {
                 if (isDragging && currentHighlight) {
                     if (currentHighlight.width > 5 && currentHighlight.height > 5) {
-                        saveAllData();
+                        saveAnnotationState();
                     } else {
                         currentHighlight.element.remove();
-                        highlights[viewerType] = highlights[viewerType].filter(h => h.id !== currentHighlight.id);
+                        highlights[side] = highlights[side].filter(h => h.id !== currentHighlight.id);
                     }
                 }
                 isDragging = false;
@@ -745,14 +746,14 @@
 
             viewer.addEventListener('mouseleave', () => {
                 if (isDragging && currentHighlight) {
-                    saveAllData();
+                    saveAnnotationState();
                 }
                 isDragging = false;
                 currentHighlight = null;
             });
         }
 
-        function createHighlight(x, y, width, height, viewer, viewerType, id = 'hl-' + Date.now()) {
+        function createHighlight(x, y, width, height, viewer, side, id = 'hl-' + Date.now()) {
             const highlight = document.createElement('div');
             highlight.className = 'highlight-area highlight';
             highlight.id = id;
@@ -770,10 +771,10 @@
                 width,
                 height,
                 element: highlight,
-                viewerType
+                side
             };
             
-            highlights[viewerType].push(highlightObj);
+            highlights[side].push(highlightObj);
             
             highlight.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -805,12 +806,11 @@
             
             textAnnotations.push(annotation);
             
-            editable.addEventListener('input', function() {
-                annotation.text = this.innerText;
-                saveAllData();
+            // Auto-save on any change
+            editable.addEventListener('input', () => {
+                annotation.text = editable.innerText;
+                saveAnnotationState();
             });
-            
-            editable.addEventListener('blur', saveAllData);
             
             editable.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -818,6 +818,170 @@
             });
             
             return annotation;
+        }
+
+        function saveAnnotationState() {
+            const data = {
+                highlights: {
+                    left: highlights.left.map(h => ({
+                        id: h.id,
+                        x: h.x,
+                        y: h.y,
+                        width: h.width,
+                        height: h.height
+                    })),
+                    right: highlights.right.map(h => ({
+                        id: h.id,
+                        x: h.x,
+                        y: h.y,
+                        width: h.width,
+                        height: h.height
+                    }))
+                },
+                textAnnotations: textAnnotations.map(a => ({
+                    id: a.id,
+                    x: a.x,
+                    y: a.y,
+                    text: a.text,
+                    viewer: a.viewer
+                })),
+                scrollPositions: {
+                    left: {
+                        x: pdfTextViewer.scrollLeft,
+                        y: pdfTextViewer.scrollTop
+                    },
+                    right: {
+                        x: pdfQuestionsViewer.scrollLeft,
+                        y: pdfQuestionsViewer.scrollTop
+                    }
+                },
+                zoomLevel: currentScale,
+                lastFile: loadedFileName
+            };
+            
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function restoreAnnotationState() {
+            const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (!savedData) return;
+
+            // Restore highlights
+            if (savedData.highlights) {
+                savedData.highlights.left.forEach(data => {
+                    createHighlight(
+                        data.x, 
+                        data.y, 
+                        data.width, 
+                        data.height, 
+                        pdfTextViewer, 
+                        'left',
+                        data.id
+                    );
+                });
+                
+                savedData.highlights.right.forEach(data => {
+                    createHighlight(
+                        data.x, 
+                        data.y, 
+                        data.width, 
+                        data.height, 
+                        pdfQuestionsViewer, 
+                        'right',
+                        data.id
+                    );
+                });
+            }
+
+            // Restore text annotations
+            if (savedData.textAnnotations) {
+                savedData.textAnnotations.forEach(data => {
+                    const viewer = data.viewer === 'pdfTextViewer' ? pdfTextViewer : pdfQuestionsViewer;
+                    createTextAnnotation(
+                        data.x,
+                        data.y,
+                        data.text,
+                        viewer,
+                        data.id
+                    );
+                });
+            }
+
+            // Restore scroll positions after a small delay
+            setTimeout(() => {
+                if (savedData.scrollPositions) {
+                    pdfTextViewer.scrollLeft = savedData.scrollPositions.left.x;
+                    pdfTextViewer.scrollTop = savedData.scrollPositions.left.y;
+                    pdfQuestionsViewer.scrollLeft = savedData.scrollPositions.right.x;
+                    pdfQuestionsViewer.scrollTop = savedData.scrollPositions.right.y;
+                }
+            }, 100);
+
+            // Restore zoom
+            if (savedData.zoomLevel) {
+                currentScale = savedData.zoomLevel;
+                updateZoomDisplay();
+            }
+        }
+
+        function loadPDF(pdfData) {
+            // Clear previous content but preserve annotations
+            Array.from(pdfTextViewer.children).forEach(child => {
+                if (child.tagName !== 'CANVAS' && !child.classList.contains('highlight-area')) child.remove();
+            });
+            Array.from(pdfQuestionsViewer.children).forEach(child => {
+                if (child.tagName !== 'CANVAS' && !child.classList.contains('highlight-area') && !child.classList.contains('editable-text')) {
+                    child.remove();
+                }
+            });
+
+            if (!isAnalysisMode) {
+                const hint = document.createElement('p');
+                hint.style.padding = '10px';
+                hint.style.color = '#999';
+                hint.textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
+                pdfQuestionsViewer.appendChild(hint);
+            }
+            
+            pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
+                // Clear existing canvases
+                pdfTextViewer.querySelectorAll('canvas').forEach(c => c.remove());
+                pdfQuestionsViewer.querySelectorAll('canvas').forEach(c => c.remove());
+                
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    pdf.getPage(pageNum).then(page => {
+                        const viewport = page.getViewport({scale: currentScale});
+                        
+                        // Create canvas for both viewers
+                        [pdfTextViewer, pdfQuestionsViewer].forEach(viewer => {
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+                            
+                            viewer.appendChild(canvas);
+                            page.render({canvasContext: context, viewport});
+                        });
+                    });
+                }
+                
+                // Restore annotations after PDF renders
+                setTimeout(() => {
+                    restoreAnnotationState();
+                    
+                    // Setup text annotation on questions viewer
+                    pdfQuestionsViewer.addEventListener('click', function(e) {
+                        if (isTextMode && e.target.tagName === 'CANVAS') {
+                            const rect = pdfQuestionsViewer.getBoundingClientRect();
+                            const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
+                            const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
+                            
+                            createTextAnnotation(x, y, '', pdfQuestionsViewer);
+                            saveAnnotationState();
+                        }
+                    });
+                }, 300);
+            });
         }
 
         function setupContextMenu() {
@@ -854,8 +1018,8 @@
             if (!selectedItem) return;
             
             // Remove from highlights
-            for (const viewerType in highlights) {
-                highlights[viewerType] = highlights[viewerType].filter(h => {
+            for (const side in highlights) {
+                highlights[side] = highlights[side].filter(h => {
                     if (h.element === selectedItem) {
                         h.element.remove();
                         return false;
@@ -875,7 +1039,7 @@
             
             selectedItem = null;
             contextMenu.style.display = 'none';
-            saveAllData();
+            saveAnnotationState();
         }
 
         function toggleHighlightMode() {
@@ -901,159 +1065,15 @@
             
             if (isTextMode) {
                 pdfQuestionsViewer.style.cursor = 'text';
-                pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (режим добавления текста активен)';
+                if (pdfQuestionsViewer.querySelector('p')) {
+                    pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (режим добавления текста активен)';
+                }
             } else {
                 pdfQuestionsViewer.style.cursor = 'default';
-                pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
-            }
-        }
-
-        function saveAllData() {
-            const data = {
-                highlights: {
-                    textViewer: highlights.textViewer.map(h => ({
-                        id: h.id,
-                        x: h.x,
-                        y: h.y,
-                        width: h.width,
-                        height: h.height
-                    })),
-                    questionsViewer: highlights.questionsViewer.map(h => ({
-                        id: h.id,
-                        x: h.x,
-                        y: h.y,
-                        width: h.width,
-                        height: h.height
-                    }))
-                },
-                textAnnotations: textAnnotations.map(a => ({
-                    id: a.id,
-                    x: a.x,
-                    y: a.y,
-                    text: a.text,
-                    viewer: a.viewer
-                })),
-                scale: currentScale,
-                scroll: {
-                    textViewer: {
-                        scrollTop: pdfTextViewer.scrollTop,
-                        scrollLeft: pdfTextViewer.scrollLeft
-                    },
-                    questionsViewer: {
-                        scrollTop: pdfQuestionsViewer.scrollTop,
-                        scrollLeft: pdfQuestionsViewer.scrollLeft
-                    }
+                if (pdfQuestionsViewer.querySelector('p')) {
+                    pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
                 }
-            };
-            
-            localStorage.setItem('ieltsReadingData', JSON.stringify(data));
-        }
-
-        function restoreAllData() {
-            const savedData = JSON.parse(localStorage.getItem('ieltsReadingData'));
-            if (!savedData) return;
-
-            // Restore scale
-            currentScale = savedData.scale || 1.0;
-            updateZoomDisplay();
-
-            // Restore highlights
-            if (savedData.highlights) {
-                savedData.highlights.textViewer.forEach(data => {
-                    createHighlight(
-                        data.x, 
-                        data.y, 
-                        data.width, 
-                        data.height, 
-                        pdfTextViewer, 
-                        'textViewer',
-                        data.id
-                    );
-                });
-                
-                savedData.highlights.questionsViewer.forEach(data => {
-                    createHighlight(
-                        data.x, 
-                        data.y, 
-                        data.width, 
-                        data.height, 
-                        pdfQuestionsViewer, 
-                        'questionsViewer',
-                        data.id
-                    );
-                });
             }
-
-            // Restore text annotations
-            if (savedData.textAnnotations) {
-                savedData.textAnnotations.forEach(data => {
-                    const viewer = data.viewer === 'pdfTextViewer' ? pdfTextViewer : pdfQuestionsViewer;
-                    createTextAnnotation(
-                        data.x,
-                        data.y,
-                        data.text,
-                        viewer,
-                        data.id
-                    );
-                });
-            }
-
-            // Restore scroll position
-            setTimeout(() => {
-                if (savedData.scroll) {
-                    pdfTextViewer.scrollTop = savedData.scroll.textViewer.scrollTop;
-                    pdfTextViewer.scrollLeft = savedData.scroll.textViewer.scrollLeft;
-                    pdfQuestionsViewer.scrollTop = savedData.scroll.questionsViewer.scrollTop;
-                    pdfQuestionsViewer.scrollLeft = savedData.scroll.questionsViewer.scrollLeft;
-                }
-            }, 500);
-        }
-
-        function loadPDF(pdfData) {
-            pdfTextViewer.innerHTML = '';
-            pdfQuestionsViewer.innerHTML = '';
-            
-            if (!isAnalysisMode) {
-                const hint = document.createElement('p');
-                hint.style.padding = '10px';
-                hint.style.color = '#999';
-                hint.textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
-                pdfQuestionsViewer.appendChild(hint);
-            }
-            
-            pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
-                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    pdf.getPage(pageNum).then(page => {
-                        const viewport = page.getViewport({scale: currentScale});
-                        
-                        // Create canvas for both viewers
-                        [pdfTextViewer, pdfQuestionsViewer].forEach(viewer => {
-                            const canvas = document.createElement('canvas');
-                            const context = canvas.getContext('2d');
-                            canvas.height = viewport.height;
-                            canvas.width = viewport.width;
-                            
-                            viewer.appendChild(canvas);
-                            page.render({canvasContext: context, viewport});
-                        });
-                    });
-                }
-                
-                // Setup text annotation on questions viewer
-                pdfQuestionsViewer.addEventListener('click', function(e) {
-                    if (isTextMode && e.target.tagName === 'CANVAS') {
-                        const rect = pdfQuestionsViewer.getBoundingClientRect();
-                        const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
-                        const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
-                        
-                        createTextAnnotation(x, y, '', pdfQuestionsViewer);
-                        saveAllData();
-                    }
-                });
-                
-                // Restore data after PDF is loaded
-                setTimeout(restoreAllData, 300);
-            });
         }
 
         function startTest() {
@@ -1075,6 +1095,7 @@
             const fileReader = new FileReader();
             fileReader.onload = function() {
                 currentPDFData = this.result;
+                loadedFileName = fileInput.files[0].name;
                 loadPDF(currentPDFData);
                 setupHighlighting();
                 setupContextMenu();
@@ -1115,7 +1136,7 @@
             toolsToggle.style.display = "none";
             endTest.style.display = "flex";
             addTestToHistory(loadedFileName);
-            saveAllData();
+            saveAnnotationState();
             showUnityAd();
         }
 
@@ -1156,6 +1177,12 @@
             // Load test history
             const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
             savedHistory.forEach(name => addTestToHistory(name));
+            
+            // Check for existing data
+            const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (savedData && savedData.lastFile) {
+                loadedFileName = savedData.lastFile;
+            }
             
             // Hide context menu on click outside
             document.addEventListener('click', function() {
