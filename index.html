@@ -178,7 +178,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             z-index: 100;
-            display: none; /* По умолчанию скрыты */
+            display: none;
         }
         .zoom-btn {
             background-color: #1a73e8;
@@ -340,6 +340,106 @@
                 visibility: hidden;
             }
         }
+        
+        /* Новые стили для панели инструментов */
+        .annotation-tools {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: none;
+        }
+        
+        .annotation-btn {
+            display: block;
+            margin: 5px 0;
+            padding: 8px 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .annotation-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .annotation-btn.active {
+            background: #1a73e8;
+            color: white;
+        }
+        
+        .comment-popup {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            min-width: 200px;
+        }
+        
+        .comment-popup textarea {
+            width: 100%;
+            min-height: 60px;
+            margin-bottom: 5px;
+            resize: vertical;
+        }
+        
+        .comment-popup button {
+            padding: 5px 10px;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+        
+        .comment-marker {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: #1a73e8;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .comment-bubble {
+            position: absolute;
+            background: white;
+            border: 1px solid #1a73e8;
+            border-radius: 4px;
+            padding: 8px;
+            max-width: 200px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: none;
+        }
+        
+        .comment-bubble::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            border-width: 0 10px 10px;
+            border-style: solid;
+            border-color: #1a73e8 transparent;
+        }
+        
+        .comment-bubble .comment-text {
+            margin-bottom: 5px;
+        }
+        
+        .comment-bubble .comment-delete {
+            color: red;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -390,6 +490,12 @@
         <button class="zoom-btn" onclick="zoomIn()">+</button>
     </div>
 
+    <div class="annotation-tools" id="annotationTools">
+        <button class="annotation-btn" id="highlightToolBtn" onclick="toggleHighlightMode()">Хайлайт</button>
+        <button class="annotation-btn" id="commentToolBtn" onclick="toggleCommentMode()">Комментарий</button>
+        <button class="annotation-btn" onclick="clearAllAnnotations()">Очистить все</button>
+    </div>
+
     <div class="unity-ad-container">
         <button class="unity-close-btn" onclick="hideAd()">×</button>
         <div class="unity-ad">
@@ -416,15 +522,21 @@
         const controls = document.getElementById('controls');
         const analyzeControls = document.getElementById('analyzeControls');
         const zoomControls = document.getElementById('zoomControls');
+        const annotationTools = document.getElementById('annotationTools');
+        const highlightToolBtn = document.getElementById('highlightToolBtn');
+        const commentToolBtn = document.getElementById('commentToolBtn');
+        
         let countdown;
         let totalTime = 60 * 60;
         let loadedFileName = "";
         let currentPDFData = null;
         let isHighlighting = false;
+        let isCommentMode = false;
         let highlightStartX = 0;
         let highlightStartY = 0;
         let currentHighlightArea = null;
         let highlights = [];
+        let comments = [];
         let currentScale = 1.0;
         const scaleStep = 0.1;
         const minScale = 0.5;
@@ -497,13 +609,15 @@
             pdfContainer.style.display = "flex";
             controls.style.display = "block";
             timerDisplay.style.display = "block";
-            zoomControls.style.display = "block"; // Показываем кнопки зума
+            zoomControls.style.display = "block";
+            annotationTools.style.display = "block";
             startTimer();
             const fileReader = new FileReader();
             fileReader.onload = function() {
                 currentPDFData = this.result;
                 loadPDF(currentPDFData);
                 setupHighlighting();
+                setupCommenting();
             };
             fileReader.readAsArrayBuffer(fileInput.files[0]);
         }
@@ -519,54 +633,211 @@
             pdfQuestionsViewer.addEventListener('mouseleave', endHighlight);
         }
 
+        function setupCommenting() {
+            pdfTextViewer.addEventListener('click', handleCommentClick);
+            pdfQuestionsViewer.addEventListener('click', handleCommentClick);
+        }
+
+        function toggleHighlightMode() {
+            isHighlighting = !isHighlighting;
+            isCommentMode = false;
+            highlightToolBtn.classList.toggle('active', isHighlighting);
+            commentToolBtn.classList.remove('active');
+        }
+
+        function toggleCommentMode() {
+            isCommentMode = !isCommentMode;
+            isHighlighting = false;
+            commentToolBtn.classList.toggle('active', isCommentMode);
+            highlightToolBtn.classList.remove('active');
+        }
+
+        function clearAllAnnotations() {
+            // Удаляем все хайлайты
+            document.querySelectorAll('.highlight-area').forEach(el => el.remove());
+            highlights = [];
+            
+            // Удаляем все комментарии
+            document.querySelectorAll('.comment-marker, .comment-bubble').forEach(el => el.remove());
+            comments = [];
+            
+            // Сохраняем изменения
+            saveHighlights();
+            saveComments();
+        }
+
         function startHighlight(e) {
-            if (e.target.tagName === 'CANVAS') {
-                isHighlighting = true;
-                const rect = e.target.getBoundingClientRect();
-                highlightStartX = e.clientX - rect.left;
-                highlightStartY = e.clientY - rect.top;
-                
-                currentHighlightArea = document.createElement('div');
-                currentHighlightArea.className = 'highlight-area';
-                currentHighlightArea.style.left = (highlightStartX + e.target.offsetLeft) + 'px';
-                currentHighlightArea.style.top = (highlightStartY + e.target.offsetTop) + 'px';
-                e.target.parentElement.appendChild(currentHighlightArea);
-            }
+            if (!isHighlighting || e.target.tagName !== 'CANVAS') return;
+            
+            const rect = e.target.getBoundingClientRect();
+            highlightStartX = e.clientX - rect.left;
+            highlightStartY = e.clientY - rect.top;
+            
+            currentHighlightArea = document.createElement('div');
+            currentHighlightArea.className = 'highlight-area';
+            currentHighlightArea.style.left = (highlightStartX + e.target.offsetLeft) + 'px';
+            currentHighlightArea.style.top = (highlightStartY + e.target.offsetTop) + 'px';
+            e.target.parentElement.appendChild(currentHighlightArea);
         }
 
         function drawHighlight(e) {
-            if (isHighlighting && e.target.tagName === 'CANVAS' && currentHighlightArea) {
-                const rect = e.target.getBoundingClientRect();
-                const currentX = e.clientX - rect.left;
-                const currentY = e.clientY - rect.top;
-                
-                const width = Math.abs(currentX - highlightStartX);
-                const height = Math.abs(currentY - highlightStartY);
-                const left = Math.min(highlightStartX, currentX) + e.target.offsetLeft;
-                const top = Math.min(highlightStartY, currentY) + e.target.offsetTop;
-                
-                currentHighlightArea.style.width = width + 'px';
-                currentHighlightArea.style.height = height + 'px';
-                currentHighlightArea.style.left = left + 'px';
-                currentHighlightArea.style.top = top + 'px';
-            }
+            if (!isHighlighting || !currentHighlightArea || e.target.tagName !== 'CANVAS') return;
+            
+            const rect = e.target.getBoundingClientRect();
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
+            
+            const width = Math.abs(currentX - highlightStartX);
+            const height = Math.abs(currentY - highlightStartY);
+            const left = Math.min(highlightStartX, currentX) + e.target.offsetLeft;
+            const top = Math.min(highlightStartY, currentY) + e.target.offsetTop;
+            
+            currentHighlightArea.style.width = width + 'px';
+            currentHighlightArea.style.height = height + 'px';
+            currentHighlightArea.style.left = left + 'px';
+            currentHighlightArea.style.top = top + 'px';
         }
 
         function endHighlight(e) {
-            if (isHighlighting && currentHighlightArea) {
-                isHighlighting = false;
-                
-                if (currentHighlightArea.offsetWidth > 5 && currentHighlightArea.offsetHeight > 5) {
-                    currentHighlightArea.classList.add('highlight');
-                    highlights.push({
-                        element: currentHighlightArea,
-                        container: e.target.parentElement
-                    });
-                } else {
-                    currentHighlightArea.remove();
+            if (!isHighlighting || !currentHighlightArea) return;
+            
+            if (currentHighlightArea.offsetWidth > 5 && currentHighlightArea.offsetHeight > 5) {
+                currentHighlightArea.classList.add('highlight');
+                highlights.push({
+                    element: currentHighlightArea,
+                    container: e.target.parentElement
+                });
+                saveHighlights();
+            } else {
+                currentHighlightArea.remove();
+            }
+            
+            currentHighlightArea = null;
+        }
+
+        function handleCommentClick(e) {
+            if (!isCommentMode || e.target.tagName !== 'CANVAS') return;
+            
+            const rect = e.target.getBoundingClientRect();
+            const x = e.clientX - rect.left + e.target.offsetLeft;
+            const y = e.clientY - rect.top + e.target.offsetTop;
+            
+            // Создаем попап для ввода комментария
+            const popup = document.createElement('div');
+            popup.className = 'comment-popup';
+            popup.style.left = `${x}px`;
+            popup.style.top = `${y}px`;
+            
+            const textarea = document.createElement('textarea');
+            textarea.placeholder = 'Введите ваш комментарий...';
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = 'Сохранить';
+            saveBtn.onclick = function() {
+                if (textarea.value.trim()) {
+                    createComment(x, y, textarea.value, e.target.parentElement);
                 }
+                popup.remove();
+            };
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = 'Отмена';
+            cancelBtn.onclick = function() {
+                popup.remove();
+            };
+            
+            popup.appendChild(textarea);
+            popup.appendChild(saveBtn);
+            popup.appendChild(cancelBtn);
+            
+            document.body.appendChild(popup);
+            
+            // Удаление попапа при клике вне его
+            setTimeout(() => {
+                document.addEventListener('click', function outsideClickHandler(evt) {
+                    if (!popup.contains(evt.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', outsideClickHandler);
+                    }
+                });
+            }, 0);
+            
+            textarea.focus();
+        }
+
+        function createComment(x, y, text, container) {
+            // Создаем маркер комментария
+            const marker = document.createElement('div');
+            marker.className = 'comment-marker';
+            marker.style.left = `${x}px`;
+            marker.style.top = `${y}px`;
+            marker.onclick = function(e) {
+                e.stopPropagation();
+                showCommentBubble(marker, text);
+            };
+            
+            // Создаем бабл комментария
+            const bubble = document.createElement('div');
+            bubble.className = 'comment-bubble';
+            bubble.style.left = `${parseInt(x) + 20}px`;
+            bubble.style.top = `${y}px`;
+            
+            const commentText = document.createElement('div');
+            commentText.className = 'comment-text';
+            commentText.textContent = text;
+            
+            const deleteBtn = document.createElement('div');
+            deleteBtn.className = 'comment-delete';
+            deleteBtn.textContent = 'Удалить';
+            deleteBtn.onclick = function(e) {
+                e.stopPropagation();
+                if (confirm('Удалить этот комментарий?')) {
+                    marker.remove();
+                    bubble.remove();
+                    comments = comments.filter(c => c.marker !== marker);
+                    saveComments();
+                }
+            };
+            
+            bubble.appendChild(commentText);
+            bubble.appendChild(deleteBtn);
+            
+            container.appendChild(marker);
+            container.appendChild(bubble);
+            
+            comments.push({
+                marker: marker,
+                bubble: bubble,
+                text: text,
+                x: x,
+                y: y,
+                containerId: container.id
+            });
+            
+            saveComments();
+        }
+
+        function showCommentBubble(marker, text) {
+            // Находим соответствующий бабл
+            const comment = comments.find(c => c.marker === marker);
+            if (comment) {
+                // Скрываем все другие баблы
+                document.querySelectorAll('.comment-bubble').forEach(b => {
+                    b.style.display = 'none';
+                });
                 
-                currentHighlightArea = null;
+                // Показываем текущий бабл
+                comment.bubble.style.display = 'block';
+                
+                // Скрываем бабл при клике вне его
+                setTimeout(() => {
+                    document.addEventListener('click', function hideBubbleHandler(e) {
+                        if (!comment.bubble.contains(e.target) && e.target !== marker) {
+                            comment.bubble.style.display = 'none';
+                            document.removeEventListener('click', hideBubbleHandler);
+                        }
+                    });
+                }, 0);
             }
         }
 
@@ -588,27 +859,32 @@
             pdfContainer.style.display = "none";
             timerDisplay.style.display = "none";
             controls.style.display = "none";
-            zoomControls.style.display = "none"; // Скрываем кнопки зума
+            zoomControls.style.display = "none";
+            annotationTools.style.display = "none";
             endTest.style.display = "flex";
             addTestToHistory(loadedFileName);
             saveAnswers();
             saveHighlights();
+            saveComments();
         }
 
         function analyzeTest() {
             endTest.style.display = "none";
             pdfContainer.style.display = "flex";
             analyzeControls.style.display = "block";
-            zoomControls.style.display = "block"; // Показываем кнопки зума при анализе
+            zoomControls.style.display = "block";
+            annotationTools.style.display = "block";
             loadPDF(currentPDFData, true);
             restoreAnswers();
             restoreHighlights();
+            restoreComments();
         }
 
         function finishAnalyze() {
             pdfContainer.style.display = "none";
             analyzeControls.style.display = "none";
-            zoomControls.style.display = "none"; // Скрываем кнопки зума
+            zoomControls.style.display = "none";
+            annotationTools.style.display = "none";
             uploadSection.style.display = "block";
         }
 
@@ -644,6 +920,8 @@
         }
 
         function addEditableText(event) {
+            if (isCommentMode || isHighlighting) return;
+            
             const rect = pdfQuestionsViewer.getBoundingClientRect();
             const x = event.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
             const y = event.clientY - rect.top + pdfQuestionsViewer.scrollTop;
@@ -718,6 +996,29 @@
                         element: highlightArea,
                         container: container
                     });
+                }
+            });
+        }
+        
+        function saveComments() {
+            const savedComments = [];
+            comments.forEach(comment => {
+                savedComments.push({
+                    x: comment.x,
+                    y: comment.y,
+                    text: comment.text,
+                    containerId: comment.containerId
+                });
+            });
+            localStorage.setItem('savedComments', JSON.stringify(savedComments));
+        }
+        
+        function restoreComments() {
+            const savedComments = JSON.parse(localStorage.getItem('savedComments')) || [];
+            savedComments.forEach(commentData => {
+                const container = document.getElementById(commentData.containerId);
+                if (container) {
+                    createComment(commentData.x, commentData.y, commentData.text, container);
                 }
             });
         }
