@@ -223,7 +223,7 @@
         }
         .tools-toggle {
             position: fixed;
-            top: 20px;
+            top: 60px;  /* Changed from 20px to 60px */
             right: 20px;
             width: 40px;
             height: 40px;
@@ -517,6 +517,7 @@
         const maxScale = 3.0;
         let toolsVisible = true;
         let selectedItem = null;
+        let scrollPositions = { text: 0, questions: 0 };
 
         function showUnityAd() {
             const isStartPage = uploadSection.style.display !== "none";
@@ -596,6 +597,7 @@
                 loadPDF(currentPDFData);
                 setupHighlighting();
                 setupContextMenu();
+                setupTextDeletion();
             };
             fileReader.readAsArrayBuffer(fileInput.files[0]);
         }
@@ -624,6 +626,22 @@
             }, true);
         }
 
+        function setupTextDeletion() {
+            // Обработчик для удаления текста при нажатии Delete/Backspace
+            document.addEventListener('keydown', function(e) {
+                if ((e.key === 'Delete' || e.key === 'Backspace') && selectedItem) {
+                    deleteSelectedItem();
+                }
+            });
+            
+            // Обработчик для снятия выделения при клике вне элемента
+            document.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('editable-text') && !e.target.classList.contains('highlight-area')) {
+                    selectedItem = null;
+                }
+            });
+        }
+
         function showContextMenu(e) {
             if (e.target.classList.contains('highlight-area') || e.target.classList.contains('editable-text')) {
                 e.preventDefault();
@@ -638,9 +656,20 @@
         function deleteSelectedItem() {
             if (selectedItem) {
                 if (selectedItem.classList.contains('highlight-area')) {
+                    // Удаляем хайлайт
                     highlights = highlights.filter(h => h.element !== selectedItem);
                     saveHighlights();
+                } else if (selectedItem.classList.contains('editable-text')) {
+                    // Удаляем текстовый элемент
+                    const answers = JSON.parse(localStorage.getItem('savedAnswers')) || [];
+                    const updatedAnswers = answers.filter(answer => 
+                        answer.left !== selectedItem.style.left || 
+                        answer.top !== selectedItem.style.top
+                    );
+                    localStorage.setItem('savedAnswers', JSON.stringify(updatedAnswers));
                 }
+                
+                // Полностью удаляем элемент из DOM
                 selectedItem.remove();
                 selectedItem = null;
                 contextMenu.style.display = 'none';
@@ -752,6 +781,10 @@
             saveAnswers();
             saveHighlights();
             
+            // Сохраняем позиции скролла перед переходом
+            scrollPositions.text = pdfTextViewer.scrollTop;
+            scrollPositions.questions = pdfQuestionsViewer.scrollTop;
+            
             showUnityAd();
         }
 
@@ -766,6 +799,12 @@
             loadPDF(currentPDFData, true);
             restoreAnswers();
             restoreHighlights();
+            
+            // Восстанавливаем позиции скролла после загрузки
+            setTimeout(() => {
+                pdfTextViewer.scrollTop = scrollPositions.text;
+                pdfQuestionsViewer.scrollTop = scrollPositions.questions;
+            }, 500);
         }
 
         function finishAnalyze() {
@@ -827,7 +866,15 @@
                     pdfQuestionsViewer.appendChild(editable);
                     editable.focus();
                     
-                    saveAnswers();
+                    // Сохраняем при изменении
+                    editable.addEventListener('input', saveAnswers);
+                    editable.addEventListener('blur', saveAnswers);
+                    
+                    // Выделяем элемент для возможного удаления
+                    editable.addEventListener('click', function(ev) {
+                        ev.stopPropagation();
+                        selectedItem = this;
+                    });
                 }
             });
         }
@@ -845,7 +892,13 @@
         function saveAnswers() {
             const answers = [];
             document.querySelectorAll('.editable-text').forEach(el => {
-                answers.push({ left: el.style.left, top: el.style.top, text: el.innerText });
+                answers.push({ 
+                    left: el.style.left, 
+                    top: el.style.top, 
+                    text: el.innerText,
+                    scrollTop: pdfQuestionsViewer.scrollTop,
+                    scrollLeft: pdfQuestionsViewer.scrollLeft
+                });
             });
             localStorage.setItem('savedAnswers', JSON.stringify(answers));
         }
@@ -861,6 +914,20 @@
                 editable.innerText = answer.text;
                 editable.style.position = 'absolute';
                 pdfQuestionsViewer.appendChild(editable);
+                
+                // Восстанавливаем позицию скролла из последнего ответа
+                if (answer.scrollTop) {
+                    pdfQuestionsViewer.scrollTop = answer.scrollTop;
+                    pdfQuestionsViewer.scrollLeft = answer.scrollLeft;
+                }
+                
+                // Добавляем обработчики для нового элемента
+                editable.addEventListener('input', saveAnswers);
+                editable.addEventListener('blur', saveAnswers);
+                editable.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    selectedItem = this;
+                });
             });
         }
         
@@ -872,7 +939,9 @@
                     top: highlight.element.style.top,
                     width: highlight.element.style.width,
                     height: highlight.element.style.height,
-                    containerId: highlight.container.id
+                    containerId: highlight.container.id,
+                    scrollTop: pdfTextViewer.scrollTop,
+                    scrollLeft: pdfTextViewer.scrollLeft
                 });
             });
             localStorage.setItem('savedHighlights', JSON.stringify(savedHighlights));
@@ -896,6 +965,12 @@
                         element: highlightArea,
                         container: container
                     });
+                    
+                    // Восстанавливаем позицию скролла из последнего хайлайта
+                    if (hl.scrollTop) {
+                        pdfTextViewer.scrollTop = hl.scrollTop;
+                        pdfTextViewer.scrollLeft = hl.scrollLeft;
+                    }
                 }
             });
         }
