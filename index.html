@@ -12,7 +12,7 @@
             --header-text: #fff;
             --button-bg: #1a73e8;
             --button-hover: #1558b0;
-            --highlight-color: rgba(255, 255, 0, 0.3); /* More transparent highlight */
+            --highlight-color: rgba(255, 255, 0, 0.5);
             --editable-bg: rgba(255,255,255,0.2);
             --editable-border: transparent;
             --zoom-controls-bg: white;
@@ -27,7 +27,7 @@
             --header-text: #fff;
             --button-bg: #0f3460;
             --button-hover: #16213e;
-            --highlight-color: rgba(255, 215, 0, 0.3); /* More transparent highlight */
+            --highlight-color: rgba(255, 215, 0, 0.5);
             --editable-bg: rgba(30, 30, 60, 0.3);
             --editable-border: transparent;
             --zoom-controls-bg: #2d2d42;
@@ -943,9 +943,7 @@
                         scrollTop: pdfQuestionsViewer.scrollTop,
                         scrollLeft: pdfQuestionsViewer.scrollLeft
                     }
-                },
-                pdfData: currentPDFData ? Array.from(new Uint8Array(currentPDFData)) : null,
-                fileName: loadedFileName
+                }
             };
             
             localStorage.setItem('ieltsReadingData', JSON.stringify(data));
@@ -954,12 +952,6 @@
         function restoreAllData() {
             const savedData = JSON.parse(localStorage.getItem('ieltsReadingData'));
             if (!savedData) return;
-
-            // Restore PDF data if available
-            if (savedData.pdfData && !currentPDFData) {
-                currentPDFData = new Uint8Array(savedData.pdfData).buffer;
-                loadedFileName = savedData.fileName || "";
-            }
 
             // Restore scale
             currentScale = savedData.scale || 1.0;
@@ -1070,7 +1062,6 @@
                 return;
             }
             
-            loadedFileName = fileInput.files[0].name;
             uploadSection.style.display = "none";
             pdfContainer.style.display = "flex";
             controls.style.display = "block";
@@ -1136,13 +1127,7 @@
             zoomControls.style.display = "block";
             annotationTools.style.display = "block";
             toolsToggle.style.display = "flex";
-            
-            // Load the saved PDF and annotations
-            const savedData = JSON.parse(localStorage.getItem('ieltsReadingData'));
-            if (savedData && savedData.pdfData) {
-                currentPDFData = new Uint8Array(savedData.pdfData).buffer;
-                loadPDF(currentPDFData);
-            }
+            loadPDF(currentPDFData);
         }
 
         function finishAnalyze() {
@@ -1183,6 +1168,7 @@
     </script>
 </body>
 </html>
+
 
 
 
