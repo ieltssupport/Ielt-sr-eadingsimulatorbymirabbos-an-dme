@@ -39,6 +39,8 @@
         #pdfContainer {
             display: flex;
             height: calc(100% - 120px);
+            margin: 0;
+            padding: 0;
         }
         .pdf-viewer {
             flex: 1;
@@ -47,7 +49,7 @@
             position: relative;
         }
         .editable-text {
-            position: absolute;
+            position: absolute !important;
             min-width: 50px;
             min-height: 20px;
             background-color: rgba(255,255,255,0.6);
@@ -161,7 +163,7 @@
             cursor: pointer;
         }
         .highlight-area {
-            position: absolute;
+            position: absolute !important;
             background-color: rgba(255, 255, 0, 0.5);
             z-index: 5;
         }
@@ -269,7 +271,7 @@
             z-index: 1000;
             transform: translateY(20px);
             opacity: 0;
-            animation: fadeInUp 0.8s ease-out 3s forwards;
+            transition: all 0.8s ease-out;
         }
         .unity-ad {
             background: rgba(255,255,255,0.97);
@@ -458,21 +460,17 @@
         <button class="zoom-btn" onclick="zoomIn()">+</button>
     </div>
 
-    <!-- Кнопка переключения панели инструментов -->
     <button class="tools-toggle" id="toolsToggle" onclick="toggleTools()">+</button>
 
-    <!-- Панель инструментов -->
     <div class="annotation-tools" id="annotationTools">
         <button class="annotation-btn" id="highlightToolBtn" onclick="toggleHighlightMode()">Хайлайт</button>
         <button class="annotation-btn" id="textToolBtn" onclick="toggleTextMode()">Добавить текст</button>
     </div>
 
-    <!-- Контекстное меню -->
     <div class="context-menu" id="contextMenu">
         <div class="context-menu-item delete-btn" onclick="deleteSelectedItem()">Удалить</div>
     </div>
 
-    <!-- Рекламный блок Unity for Change -->
     <div class="unity-ad-container">
         <button class="unity-close-btn" onclick="hideAd()">×</button>
         <div class="unity-ad">
@@ -522,30 +520,18 @@
         let toolsVisible = true;
         let selectedItem = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
-            savedHistory.forEach(name => addTestToHistory(name));
+        function showUnityAd() {
+            const adContainer = document.querySelector('.unity-ad-container');
+            adContainer.style.display = 'block';
+            adContainer.style.opacity = '0';
+            adContainer.style.transform = 'translateY(20px)';
             
-            // Закрываем контекстное меню при клике вне его
-            document.addEventListener('click', () => {
-                contextMenu.style.display = 'none';
-            });
-            
-            // Анимация для рекламного блока
-            const pulse = document.querySelector('.pulse-effect');
-            if(pulse) {
-                const randomDelay = Math.random() * 2;
-                pulse.style.animationDelay = `${randomDelay}s`;
-                
-                setInterval(() => {
-                    const newPulse = pulse.cloneNode(true);
-                    pulse.parentNode.appendChild(newPulse);
-                    setTimeout(() => {
-                        newPulse.remove();
-                    }, 4000);
-                }, 4000);
-            }
-        });
+            setTimeout(() => {
+                adContainer.style.opacity = '1';
+                adContainer.style.transform = 'translateY(0)';
+                adContainer.style.transition = 'all 0.8s ease-out';
+            }, 100);
+        }
 
         function toggleTools() {
             toolsVisible = !toolsVisible;
@@ -596,6 +582,9 @@
             annotationTools.style.display = "block";
             toolsToggle.style.display = "flex";
             startTimer();
+            
+            showUnityAd();
+            
             const fileReader = new FileReader();
             fileReader.onload = function() {
                 currentPDFData = this.result;
@@ -618,11 +607,9 @@
         }
 
         function setupContextMenu() {
-            // Для хайлайтов
             pdfTextViewer.addEventListener('contextmenu', showContextMenu);
             pdfQuestionsViewer.addEventListener('contextmenu', showContextMenu);
             
-            // Для текстовых полей
             pdfQuestionsViewer.addEventListener('contextmenu', function(e) {
                 if (e.target.classList.contains('editable-text')) {
                     e.preventDefault();
@@ -646,7 +633,6 @@
         function deleteSelectedItem() {
             if (selectedItem) {
                 if (selectedItem.classList.contains('highlight-area')) {
-                    // Удаляем хайлайт
                     highlights = highlights.filter(h => h.element !== selectedItem);
                     saveHighlights();
                 }
@@ -662,7 +648,6 @@
             highlightToolBtn.classList.toggle('active', isHighlighting);
             textToolBtn.classList.remove('active');
             
-            // Меняем курсор при включенном режиме хайлайта
             if (isHighlighting) {
                 pdfTextViewer.style.cursor = 'crosshair';
                 pdfQuestionsViewer.style.cursor = 'crosshair';
@@ -678,7 +663,6 @@
             textToolBtn.classList.toggle('active', isTextMode);
             highlightToolBtn.classList.remove('active');
             
-            // Меняем курсор при включенном режиме добавления текста
             if (isTextMode) {
                 pdfQuestionsViewer.style.cursor = 'text';
                 pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (режим добавления текста активен)';
@@ -819,7 +803,6 @@
                 }
             });
             
-            // Добавляем обработчик клика для добавления текста
             pdfQuestionsViewer.addEventListener('click', function(e) {
                 if (isTextMode && e.target.tagName === 'CANVAS') {
                     const rect = pdfQuestionsViewer.getBoundingClientRect();
@@ -834,7 +817,6 @@
                     pdfQuestionsViewer.appendChild(editable);
                     editable.focus();
                     
-                    // Сохраняем изменения
                     saveAnswers();
                 }
             });
@@ -867,6 +849,7 @@
                 editable.style.left = answer.left;
                 editable.style.top = answer.top;
                 editable.innerText = answer.text;
+                editable.style.position = 'absolute';
                 pdfQuestionsViewer.appendChild(editable);
             });
         }
@@ -894,6 +877,7 @@
                 highlightArea.style.top = hl.top;
                 highlightArea.style.width = hl.width;
                 highlightArea.style.height = hl.height;
+                highlightArea.style.position = 'absolute';
                 
                 const container = document.getElementById(hl.containerId);
                 if (container) {
@@ -908,17 +892,44 @@
         
         function hideAd() {
             const adContainer = document.querySelector('.unity-ad-container');
-            adContainer.classList.add('hide');
+            adContainer.style.opacity = '0';
+            adContainer.style.transform = 'translateY(20px)';
+            adContainer.style.transition = 'all 0.6s ease';
             
             setTimeout(() => {
                 adContainer.style.display = 'none';
             }, 600);
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
+            savedHistory.forEach(name => addTestToHistory(name));
+            
+            document.addEventListener('click', () => {
+                contextMenu.style.display = 'none';
+            });
+            
+            const pulse = document.querySelector('.pulse-effect');
+            if(pulse) {
+                const randomDelay = Math.random() * 2;
+                pulse.style.animationDelay = `${randomDelay}s`;
+                
+                setInterval(() => {
+                    const newPulse = pulse.cloneNode(true);
+                    pulse.parentNode.appendChild(newPulse);
+                    setTimeout(() => {
+                        newPulse.remove();
+                    }, 4000);
+                }, 4000);
+            }
+            
+            setTimeout(() => {
+                showUnityAd();
+            }, 1000);
+        });
     </script>
 </body>
 </html>
-
-
 
 
 
