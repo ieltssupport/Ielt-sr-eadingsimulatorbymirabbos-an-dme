@@ -13,8 +13,8 @@
             --button-bg: #1a73e8;
             --button-hover: #1558b0;
             --highlight-color: rgba(255, 255, 0, 0.5);
-            --editable-bg: rgba(255,255,255,0.2); /* Более прозрачный фон */
-            --editable-border: transparent; /* Убрана обводка */
+            --editable-bg: rgba(255,255,255,0.2);
+            --editable-border: transparent;
             --zoom-controls-bg: white;
             --annotation-tools-bg: white;
             --context-menu-bg: white;
@@ -28,7 +28,7 @@
             --button-bg: #0f3460;
             --button-hover: #16213e;
             --highlight-color: rgba(255, 215, 0, 0.5);
-            --editable-bg: rgba(30, 30, 60, 0.3); /* Более прозрачный фон для темной темы */
+            --editable-bg: rgba(30, 30, 60, 0.3);
             --editable-border: transparent;
             --zoom-controls-bg: #2d2d42;
             --annotation-tools-bg: #2d2d42;
@@ -87,18 +87,18 @@
             min-width: 50px;
             min-height: 20px;
             background-color: var(--editable-bg);
-            border: 1px solid var(--editable-border); /* Убрана пунктирная обводка */
+            border: 1px solid var(--editable-border);
             padding: 2px 5px;
-            border-radius: 2px; /* Уменьшен радиус скругления */
+            border-radius: 2px;
             cursor: text;
             color: var(--text-color);
             transition: background-color 0.3s;
             z-index: 10;
-            box-shadow: none; /* Убрана тень */
-            outline: none; /* Убрана обводка при фокусе */
+            box-shadow: none;
+            outline: none;
         }
         .editable-text:focus {
-            background-color: rgba(255,255,255,0.4); /* Немного более видимый при фокусе */
+            background-color: rgba(255,255,255,0.4);
         }
         #timer {
             position: fixed;
@@ -367,6 +367,130 @@
         .slider.round:before {
             border-radius: 50%;
         }
+        /* Unity Ad styles */
+        .unity-ad-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.8s ease-out;
+            display: none;
+        }
+        .unity-ad {
+            background: rgba(255,255,255,0.97);
+            border-radius: 16px;
+            padding: 20px;
+            width: 240px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            border: 1px solid rgba(0,0,0,0.08);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.4s;
+        }
+        .unity-ad:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .unity-logo {
+            color: #1a73e8;
+            font-weight: 800;
+            font-size: 20px;
+            margin-bottom: 8px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #1a73e8, #34a853);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 8s infinite alternate;
+        }
+        .unity-slogan {
+            color: #555;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+            line-height: 1.4;
+            font-style: italic;
+        }
+        .unity-cta {
+            display: block;
+            background: linear-gradient(135deg, #1a73e8, #34a853);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s;
+            box-shadow: 0 4px 8px rgba(26,115,232,0.2);
+        }
+        .unity-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(26,115,232,0.3);
+        }
+        .unity-cta:active {
+            transform: translateY(0);
+        }
+        .telegram-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            opacity: 0.8;
+            transition: all 0.3s;
+        }
+        .unity-cta:hover .telegram-icon {
+            transform: translateY(-50%) translateX(3px);
+            opacity: 1;
+        }
+        .pulse-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            background: radial-gradient(circle at center, rgba(26,115,232,0.1) 0%, transparent 70%);
+            animation: pulse 4s infinite;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .unity-close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+            border: none;
+            color: #555;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .unity-close-btn:hover {
+            background: rgba(0,0,0,0.2);
+            transform: rotate(90deg);
+        }
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 100% 50%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -437,6 +561,20 @@
         <div class="context-menu-item delete-btn" onclick="deleteSelectedItem()">Удалить</div>
     </div>
 
+    <!-- Unity Ad Container -->
+    <div class="unity-ad-container">
+        <button class="unity-close-btn" onclick="hideAd()">×</button>
+        <div class="unity-ad">
+            <div class="pulse-effect"></div>
+            <div class="unity-logo">UNITY FOR CHANGE</div>
+            <div class="unity-slogan">Together we can build a better future</div>
+            <a href="https://t.me/unityyforchange" target="_blank" class="unity-cta">
+                Click to learn more
+                <span class="telegram-icon">➤</span>
+            </a>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
     <script>
         const fileInput = document.getElementById('fileInput');
@@ -456,6 +594,7 @@
         const textToolBtn = document.getElementById('textToolBtn');
         const contextMenu = document.getElementById('contextMenu');
         const darkModeToggle = document.getElementById('darkModeToggle');
+        const unityAdContainer = document.querySelector('.unity-ad-container');
         
         let countdown;
         let totalTime = 60 * 60;
@@ -493,6 +632,29 @@
         if (localStorage.getItem('darkMode') === 'true') {
             darkModeToggle.checked = true;
             document.body.classList.add('dark-mode');
+        }
+
+        function showUnityAd() {
+            const isStartPage = uploadSection.style.display !== "none";
+            const isEndPage = endTest.style.display === "flex";
+            
+            if (isStartPage || isEndPage) {
+                unityAdContainer.style.display = 'block';
+                setTimeout(() => {
+                    unityAdContainer.style.opacity = '1';
+                    unityAdContainer.style.transform = 'translateY(0)';
+                }, 100);
+            } else {
+                unityAdContainer.style.display = 'none';
+            }
+        }
+
+        function hideAd() {
+            unityAdContainer.style.opacity = '0';
+            unityAdContainer.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                unityAdContainer.style.display = 'none';
+            }, 600);
         }
 
         function toggleTools() {
@@ -545,6 +707,7 @@
             annotationTools.style.display = "block";
             toolsToggle.style.display = "flex";
             startTimer();
+            showUnityAd();
             
             const fileReader = new FileReader();
             fileReader.onload = function() {
@@ -604,7 +767,6 @@
 
         function deleteSelectedItem() {
             if (selectedItem) {
-                // Полностью удаляем элемент из DOM и из сохраненных данных
                 if (selectedItem.classList.contains('highlight-area')) {
                     highlights = highlights.filter(h => h.element !== selectedItem);
                     elementsData.highlights = elementsData.highlights.filter(h => h.id !== selectedItem.id);
@@ -723,6 +885,7 @@
             endTest.style.display = "flex";
             addTestToHistory(loadedFileName);
             saveElementsData();
+            showUnityAd();
         }
 
         function analyzeTest() {
@@ -745,6 +908,7 @@
             annotationTools.style.display = "none";
             toolsToggle.style.display = "none";
             uploadSection.style.display = "block";
+            showUnityAd();
         }
 
         function saveElementsData() {
@@ -838,14 +1002,14 @@
             });
             
             // Восстанавливаем позицию скролла
-            if (savedData.scroll) {
-                setTimeout(() => {
+            setTimeout(() => {
+                if (savedData.scroll) {
                     pdfTextViewer.scrollTop = savedData.scroll.textViewer.scrollTop;
                     pdfTextViewer.scrollLeft = savedData.scroll.textViewer.scrollLeft;
                     pdfQuestionsViewer.scrollTop = savedData.scroll.questionsViewer.scrollTop;
                     pdfQuestionsViewer.scrollLeft = savedData.scroll.questionsViewer.scrollLeft;
-                }, 100);
-            }
+                }
+            }, 100);
         }
 
         function loadPDF(pdfData, isAnalysis = false) {
@@ -925,6 +1089,11 @@
             document.addEventListener('click', () => {
                 contextMenu.style.display = 'none';
             });
+            
+            // Показываем рекламу при загрузке
+            setTimeout(() => {
+                showUnityAd();
+            }, 1000);
         });
     </script>
 </body>
