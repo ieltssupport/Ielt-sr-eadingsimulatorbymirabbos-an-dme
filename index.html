@@ -716,6 +716,7 @@
                 setupHighlighting();
                 setupContextMenu();
                 setupTextDeletion();
+                restoreElementsData(); // Restore saved elements
             };
             fileReader.readAsArrayBuffer(fileInput.files[0]);
         }
@@ -912,7 +913,7 @@
         }
 
         function saveElementsData() {
-            // Сохраняем текстовые элементы
+            // Save text elements
             elementsData.text = [];
             document.querySelectorAll('.editable-text').forEach(el => {
                 const rect = el.getBoundingClientRect();
@@ -926,7 +927,7 @@
                 });
             });
             
-            // Сохраняем хайлайты
+            // Save highlights
             elementsData.highlights = [];
             highlights.forEach(highlight => {
                 const rect = highlight.element.getBoundingClientRect();
@@ -942,7 +943,7 @@
                 });
             });
             
-            // Сохраняем позицию скролла
+            // Save scroll position
             elementsData.scroll = {
                 textViewer: {
                     scrollTop: pdfTextViewer.scrollTop,
@@ -960,7 +961,7 @@
         function restoreElementsData() {
             const savedData = JSON.parse(localStorage.getItem('elementsData')) || elementsData;
             
-            // Восстанавливаем хайлайты
+            // Restore highlights
             savedData.highlights.forEach(data => {
                 const highlightArea = document.createElement('div');
                 highlightArea.className = 'highlight-area highlight';
@@ -981,7 +982,7 @@
                 }
             });
             
-            // Восстанавливаем текстовые элементы
+            // Restore text elements
             savedData.text.forEach(data => {
                 const editable = document.createElement('div');
                 editable.className = 'editable-text';
@@ -1001,7 +1002,7 @@
                 });
             });
             
-            // Восстанавливаем позицию скролла
+            // Restore scroll position
             setTimeout(() => {
                 if (savedData.scroll) {
                     pdfTextViewer.scrollTop = savedData.scroll.textViewer.scrollTop;
@@ -1090,7 +1091,7 @@
                 contextMenu.style.display = 'none';
             });
             
-            // Показываем рекламу при загрузке
+            // Show ad on load
             setTimeout(() => {
                 showUnityAd();
             }, 1000);
@@ -1098,8 +1099,6 @@
     </script>
 </body>
 </html>
-
-
 
 
 
