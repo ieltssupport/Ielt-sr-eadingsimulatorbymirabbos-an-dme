@@ -194,152 +194,6 @@
             width: 40px;
             text-align: center;
         }
-        .unity-ad-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            transform: translateY(20px);
-            opacity: 0;
-            animation: fadeInUp 0.8s ease-out 1s forwards;
-        }
-        .unity-ad {
-            background: rgba(255,255,255,0.97);
-            border-radius: 16px;
-            padding: 20px;
-            width: 240px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-            border: 1px solid rgba(0,0,0,0.08);
-            overflow: hidden;
-            position: relative;
-            transition: all 0.4s;
-        }
-        .unity-ad:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-        .unity-logo {
-            color: #1a73e8;
-            font-weight: 800;
-            font-size: 20px;
-            margin-bottom: 8px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: linear-gradient(90deg, #1a73e8, #34a853);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientShift 8s infinite alternate;
-        }
-        .unity-slogan {
-            color: #555;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 16px;
-            line-height: 1.4;
-            font-style: italic;
-        }
-        .unity-cta {
-            display: block;
-            background: linear-gradient(135deg, #1a73e8, #34a853);
-            color: white;
-            text-align: center;
-            padding: 12px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 15px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s;
-            box-shadow: 0 4px 8px rgba(26,115,232,0.2);
-        }
-        .unity-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(26,115,232,0.3);
-        }
-        .unity-cta:active {
-            transform: translateY(0);
-        }
-        .telegram-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            opacity: 0.8;
-            transition: all 0.3s;
-        }
-        .unity-cta:hover .telegram-icon {
-            transform: translateY(-50%) translateX(3px);
-            opacity: 1;
-        }
-        .pulse-effect {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 16px;
-            background: radial-gradient(circle at center, rgba(26,115,232,0.1) 0%, transparent 70%);
-            animation: pulse 4s infinite;
-            pointer-events: none;
-            opacity: 0;
-        }
-        .unity-close-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 24px;
-            height: 24px;
-            background: rgba(0,0,0,0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 10;
-            border: none;
-            color: #555;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .unity-close-btn:hover {
-            background: rgba(0,0,0,0.2);
-            transform: rotate(90deg);
-        }
-        .unity-ad-container.hide {
-            animation: fadeOutDown 0.6s ease forwards;
-        }
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        @keyframes gradientShift {
-            0% {
-                background-position: 0% 50%;
-            }
-            100% {
-                background-position: 100% 50%;
-            }
-        }
-        @keyframes fadeOutDown {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(20px);
-                visibility: hidden;
-            }
-        }
         
         /* Новые стили для панели инструментов */
         .annotation-tools {
@@ -352,6 +206,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 100;
             display: none;
+            transition: all 0.3s;
         }
         
         .annotation-btn {
@@ -374,71 +229,54 @@
             color: white;
         }
         
-        .comment-popup {
+        .tools-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 101;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .tools-toggle:hover {
+            background: #1558b0;
+            transform: scale(1.1);
+        }
+        
+        /* Стили для контекстного меню */
+        .context-menu {
             position: absolute;
             background: white;
             border: 1px solid #ccc;
             border-radius: 4px;
-            padding: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             z-index: 1000;
-            min-width: 200px;
-        }
-        
-        .comment-popup textarea {
-            width: 100%;
-            min-height: 60px;
-            margin-bottom: 5px;
-            resize: vertical;
-        }
-        
-        .comment-popup button {
-            padding: 5px 10px;
-            font-size: 14px;
-            margin: 0 5px;
-        }
-        
-        .comment-marker {
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            background-color: #1a73e8;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 10;
-        }
-        
-        .comment-bubble {
-            position: absolute;
-            background: white;
-            border: 1px solid #1a73e8;
-            border-radius: 4px;
-            padding: 8px;
-            max-width: 200px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            z-index: 100;
+            min-width: 100px;
             display: none;
         }
         
-        .comment-bubble::after {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: 10px;
-            border-width: 0 10px 10px;
-            border-style: solid;
-            border-color: #1a73e8 transparent;
-        }
-        
-        .comment-bubble .comment-text {
-            margin-bottom: 5px;
-        }
-        
-        .comment-bubble .comment-delete {
-            color: red;
-            font-size: 12px;
+        .context-menu-item {
+            padding: 6px 12px;
             cursor: pointer;
-            text-align: right;
+            font-size: 14px;
+        }
+        
+        .context-menu-item:hover {
+            background: #f0f0f0;
+        }
+        
+        .delete-btn {
+            color: red;
         }
     </style>
 </head>
@@ -464,8 +302,8 @@
 
     <div id="pdfContainer" style="display:none;">
         <div class="pdf-viewer" id="pdfTextViewer"></div>
-        <div class="pdf-viewer" id="pdfQuestionsViewer" onclick="addEditableText(event)">
-            <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст</p>
+        <div class="pdf-viewer" id="pdfQuestionsViewer">
+            <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)</p>
         </div>
     </div>
 
@@ -490,23 +328,18 @@
         <button class="zoom-btn" onclick="zoomIn()">+</button>
     </div>
 
+    <!-- Кнопка переключения панели инструментов -->
+    <button class="tools-toggle" id="toolsToggle" onclick="toggleTools()">+</button>
+
+    <!-- Панель инструментов -->
     <div class="annotation-tools" id="annotationTools">
         <button class="annotation-btn" id="highlightToolBtn" onclick="toggleHighlightMode()">Хайлайт</button>
-        <button class="annotation-btn" id="commentToolBtn" onclick="toggleCommentMode()">Комментарий</button>
-        <button class="annotation-btn" onclick="clearAllAnnotations()">Очистить все</button>
+        <button class="annotation-btn" id="textToolBtn" onclick="toggleTextMode()">Добавить текст</button>
     </div>
 
-    <div class="unity-ad-container">
-        <button class="unity-close-btn" onclick="hideAd()">×</button>
-        <div class="unity-ad">
-            <div class="pulse-effect"></div>
-            <div class="unity-logo">UNITY FOR CHANGE</div>
-            <div class="unity-slogan">Together we can build a better future</div>
-            <a href="https://t.me/unityyforchange" target="_blank" class="unity-cta">
-                Click to learn more
-                <span class="telegram-icon">➤</span>
-            </a>
-        </div>
+    <!-- Контекстное меню -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item delete-btn" onclick="deleteSelectedItem()">Удалить</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
@@ -523,51 +356,42 @@
         const analyzeControls = document.getElementById('analyzeControls');
         const zoomControls = document.getElementById('zoomControls');
         const annotationTools = document.getElementById('annotationTools');
+        const toolsToggle = document.getElementById('toolsToggle');
         const highlightToolBtn = document.getElementById('highlightToolBtn');
-        const commentToolBtn = document.getElementById('commentToolBtn');
+        const textToolBtn = document.getElementById('textToolBtn');
+        const contextMenu = document.getElementById('contextMenu');
         
         let countdown;
         let totalTime = 60 * 60;
         let loadedFileName = "";
         let currentPDFData = null;
         let isHighlighting = false;
-        let isCommentMode = false;
+        let isTextMode = false;
         let highlightStartX = 0;
         let highlightStartY = 0;
         let currentHighlightArea = null;
         let highlights = [];
-        let comments = [];
         let currentScale = 1.0;
         const scaleStep = 0.1;
         const minScale = 0.5;
         const maxScale = 3.0;
+        let toolsVisible = true;
+        let selectedItem = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
             savedHistory.forEach(name => addTestToHistory(name));
-
-            const pulse = document.querySelector('.pulse-effect');
-            if(pulse) {
-                const randomDelay = Math.random() * 2;
-                pulse.style.animationDelay = `${randomDelay}s`;
-                
-                setInterval(() => {
-                    const newPulse = pulse.cloneNode(true);
-                    pulse.parentNode.appendChild(newPulse);
-                    setTimeout(() => {
-                        newPulse.remove();
-                    }, 4000);
-                }, 4000);
-            }
+            
+            // Закрываем контекстное меню при клике вне его
+            document.addEventListener('click', () => {
+                contextMenu.style.display = 'none';
+            });
         });
 
-        function hideAd() {
-            const adContainer = document.querySelector('.unity-ad-container');
-            adContainer.classList.add('hide');
-            
-            setTimeout(() => {
-                adContainer.style.display = 'none';
-            }, 600);
+        function toggleTools() {
+            toolsVisible = !toolsVisible;
+            annotationTools.style.display = toolsVisible ? 'block' : 'none';
+            toolsToggle.textContent = toolsVisible ? '×' : '+';
         }
 
         function zoomIn() {
@@ -611,13 +435,14 @@
             timerDisplay.style.display = "block";
             zoomControls.style.display = "block";
             annotationTools.style.display = "block";
+            toolsToggle.style.display = "flex";
             startTimer();
             const fileReader = new FileReader();
             fileReader.onload = function() {
                 currentPDFData = this.result;
                 loadPDF(currentPDFData);
                 setupHighlighting();
-                setupCommenting();
+                setupContextMenu();
             };
             fileReader.readAsArrayBuffer(fileInput.files[0]);
         }
@@ -633,37 +458,66 @@
             pdfQuestionsViewer.addEventListener('mouseleave', endHighlight);
         }
 
-        function setupCommenting() {
-            pdfTextViewer.addEventListener('click', handleCommentClick);
-            pdfQuestionsViewer.addEventListener('click', handleCommentClick);
+        function setupContextMenu() {
+            // Для хайлайтов
+            pdfTextViewer.addEventListener('contextmenu', showContextMenu);
+            pdfQuestionsViewer.addEventListener('contextmenu', showContextMenu);
+            
+            // Для текстовых полей
+            pdfQuestionsViewer.addEventListener('contextmenu', function(e) {
+                if (e.target.classList.contains('editable-text')) {
+                    e.preventDefault();
+                    selectedItem = e.target;
+                    showContextMenu(e);
+                }
+            }, true);
+        }
+
+        function showContextMenu(e) {
+            if (e.target.classList.contains('highlight-area') || e.target.classList.contains('editable-text')) {
+                e.preventDefault();
+                selectedItem = e.target;
+                
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${e.clientX}px`;
+                contextMenu.style.top = `${e.clientY}px`;
+            }
+        }
+
+        function deleteSelectedItem() {
+            if (selectedItem) {
+                if (selectedItem.classList.contains('highlight-area')) {
+                    // Удаляем хайлайт
+                    highlights = highlights.filter(h => h.element !== selectedItem);
+                    saveHighlights();
+                }
+                selectedItem.remove();
+                selectedItem = null;
+                contextMenu.style.display = 'none';
+            }
         }
 
         function toggleHighlightMode() {
             isHighlighting = !isHighlighting;
-            isCommentMode = false;
+            isTextMode = false;
             highlightToolBtn.classList.toggle('active', isHighlighting);
-            commentToolBtn.classList.remove('active');
+            textToolBtn.classList.remove('active');
         }
 
-        function toggleCommentMode() {
-            isCommentMode = !isCommentMode;
+        function toggleTextMode() {
+            isTextMode = !isTextMode;
             isHighlighting = false;
-            commentToolBtn.classList.toggle('active', isCommentMode);
+            textToolBtn.classList.toggle('active', isTextMode);
             highlightToolBtn.classList.remove('active');
-        }
-
-        function clearAllAnnotations() {
-            // Удаляем все хайлайты
-            document.querySelectorAll('.highlight-area').forEach(el => el.remove());
-            highlights = [];
             
-            // Удаляем все комментарии
-            document.querySelectorAll('.comment-marker, .comment-bubble').forEach(el => el.remove());
-            comments = [];
-            
-            // Сохраняем изменения
-            saveHighlights();
-            saveComments();
+            // Меняем курсор при включенном режиме добавления текста
+            if (isTextMode) {
+                pdfQuestionsViewer.style.cursor = 'text';
+                pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (режим добавления текста активен)';
+            } else {
+                pdfQuestionsViewer.style.cursor = 'default';
+                pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
+            }
         }
 
         function startHighlight(e) {
@@ -715,132 +569,6 @@
             currentHighlightArea = null;
         }
 
-        function handleCommentClick(e) {
-            if (!isCommentMode || e.target.tagName !== 'CANVAS') return;
-            
-            const rect = e.target.getBoundingClientRect();
-            const x = e.clientX - rect.left + e.target.offsetLeft;
-            const y = e.clientY - rect.top + e.target.offsetTop;
-            
-            // Создаем попап для ввода комментария
-            const popup = document.createElement('div');
-            popup.className = 'comment-popup';
-            popup.style.left = `${x}px`;
-            popup.style.top = `${y}px`;
-            
-            const textarea = document.createElement('textarea');
-            textarea.placeholder = 'Введите ваш комментарий...';
-            
-            const saveBtn = document.createElement('button');
-            saveBtn.textContent = 'Сохранить';
-            saveBtn.onclick = function() {
-                if (textarea.value.trim()) {
-                    createComment(x, y, textarea.value, e.target.parentElement);
-                }
-                popup.remove();
-            };
-            
-            const cancelBtn = document.createElement('button');
-            cancelBtn.textContent = 'Отмена';
-            cancelBtn.onclick = function() {
-                popup.remove();
-            };
-            
-            popup.appendChild(textarea);
-            popup.appendChild(saveBtn);
-            popup.appendChild(cancelBtn);
-            
-            document.body.appendChild(popup);
-            
-            // Удаление попапа при клике вне его
-            setTimeout(() => {
-                document.addEventListener('click', function outsideClickHandler(evt) {
-                    if (!popup.contains(evt.target)) {
-                        popup.remove();
-                        document.removeEventListener('click', outsideClickHandler);
-                    }
-                });
-            }, 0);
-            
-            textarea.focus();
-        }
-
-        function createComment(x, y, text, container) {
-            // Создаем маркер комментария
-            const marker = document.createElement('div');
-            marker.className = 'comment-marker';
-            marker.style.left = `${x}px`;
-            marker.style.top = `${y}px`;
-            marker.onclick = function(e) {
-                e.stopPropagation();
-                showCommentBubble(marker, text);
-            };
-            
-            // Создаем бабл комментария
-            const bubble = document.createElement('div');
-            bubble.className = 'comment-bubble';
-            bubble.style.left = `${parseInt(x) + 20}px`;
-            bubble.style.top = `${y}px`;
-            
-            const commentText = document.createElement('div');
-            commentText.className = 'comment-text';
-            commentText.textContent = text;
-            
-            const deleteBtn = document.createElement('div');
-            deleteBtn.className = 'comment-delete';
-            deleteBtn.textContent = 'Удалить';
-            deleteBtn.onclick = function(e) {
-                e.stopPropagation();
-                if (confirm('Удалить этот комментарий?')) {
-                    marker.remove();
-                    bubble.remove();
-                    comments = comments.filter(c => c.marker !== marker);
-                    saveComments();
-                }
-            };
-            
-            bubble.appendChild(commentText);
-            bubble.appendChild(deleteBtn);
-            
-            container.appendChild(marker);
-            container.appendChild(bubble);
-            
-            comments.push({
-                marker: marker,
-                bubble: bubble,
-                text: text,
-                x: x,
-                y: y,
-                containerId: container.id
-            });
-            
-            saveComments();
-        }
-
-        function showCommentBubble(marker, text) {
-            // Находим соответствующий бабл
-            const comment = comments.find(c => c.marker === marker);
-            if (comment) {
-                // Скрываем все другие баблы
-                document.querySelectorAll('.comment-bubble').forEach(b => {
-                    b.style.display = 'none';
-                });
-                
-                // Показываем текущий бабл
-                comment.bubble.style.display = 'block';
-                
-                // Скрываем бабл при клике вне его
-                setTimeout(() => {
-                    document.addEventListener('click', function hideBubbleHandler(e) {
-                        if (!comment.bubble.contains(e.target) && e.target !== marker) {
-                            comment.bubble.style.display = 'none';
-                            document.removeEventListener('click', hideBubbleHandler);
-                        }
-                    });
-                }, 0);
-            }
-        }
-
         function startTimer() {
             countdown = setInterval(() => {
                 totalTime--;
@@ -861,11 +589,11 @@
             controls.style.display = "none";
             zoomControls.style.display = "none";
             annotationTools.style.display = "none";
+            toolsToggle.style.display = "none";
             endTest.style.display = "flex";
             addTestToHistory(loadedFileName);
             saveAnswers();
             saveHighlights();
-            saveComments();
         }
 
         function analyzeTest() {
@@ -874,10 +602,10 @@
             analyzeControls.style.display = "block";
             zoomControls.style.display = "block";
             annotationTools.style.display = "block";
+            toolsToggle.style.display = "flex";
             loadPDF(currentPDFData, true);
             restoreAnswers();
             restoreHighlights();
-            restoreComments();
         }
 
         function finishAnalyze() {
@@ -885,6 +613,7 @@
             analyzeControls.style.display = "none";
             zoomControls.style.display = "none";
             annotationTools.style.display = "none";
+            toolsToggle.style.display = "none";
             uploadSection.style.display = "block";
         }
 
@@ -893,7 +622,11 @@
             pdfQuestionsViewer.innerHTML = '';
             
             if (!isAnalysis) {
-                pdfQuestionsViewer.innerHTML = '<p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст</p>';
+                const hint = document.createElement('p');
+                hint.style.padding = '10px';
+                hint.style.color = '#999';
+                hint.textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
+                pdfQuestionsViewer.appendChild(hint);
             }
             
             pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
@@ -917,21 +650,26 @@
                     });
                 }
             });
-        }
-
-        function addEditableText(event) {
-            if (isCommentMode || isHighlighting) return;
             
-            const rect = pdfQuestionsViewer.getBoundingClientRect();
-            const x = event.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
-            const y = event.clientY - rect.top + pdfQuestionsViewer.scrollTop;
-            const editable = document.createElement('div');
-            editable.className = 'editable-text';
-            editable.contentEditable = true;
-            editable.style.left = x + 'px';
-            editable.style.top = y + 'px';
-            pdfQuestionsViewer.appendChild(editable);
-            editable.focus();
+            // Добавляем обработчик клика для добавления текста
+            pdfQuestionsViewer.addEventListener('click', function(e) {
+                if (isTextMode && e.target.tagName === 'CANVAS') {
+                    const rect = pdfQuestionsViewer.getBoundingClientRect();
+                    const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
+                    const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
+                    
+                    const editable = document.createElement('div');
+                    editable.className = 'editable-text';
+                    editable.contentEditable = true;
+                    editable.style.left = x + 'px';
+                    editable.style.top = y + 'px';
+                    pdfQuestionsViewer.appendChild(editable);
+                    editable.focus();
+                    
+                    // Сохраняем изменения
+                    saveAnswers();
+                }
+            });
         }
 
         function addTestToHistory(name) {
@@ -996,29 +734,6 @@
                         element: highlightArea,
                         container: container
                     });
-                }
-            });
-        }
-        
-        function saveComments() {
-            const savedComments = [];
-            comments.forEach(comment => {
-                savedComments.push({
-                    x: comment.x,
-                    y: comment.y,
-                    text: comment.text,
-                    containerId: comment.containerId
-                });
-            });
-            localStorage.setItem('savedComments', JSON.stringify(savedComments));
-        }
-        
-        function restoreComments() {
-            const savedComments = JSON.parse(localStorage.getItem('savedComments')) || [];
-            savedComments.forEach(commentData => {
-                const container = document.getElementById(commentData.containerId);
-                if (container) {
-                    createComment(commentData.x, commentData.y, commentData.text, container);
                 }
             });
         }
