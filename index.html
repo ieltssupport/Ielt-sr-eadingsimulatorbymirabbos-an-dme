@@ -13,8 +13,8 @@
             --button-bg: #1a73e8;
             --button-hover: #1558b0;
             --highlight-color: rgba(255, 255, 0, 0.5);
-            --editable-bg: rgba(255,255,255,0.15);
-            --editable-border: rgba(0,0,0,0.3);
+            --editable-bg: rgba(255, 255, 255, 0.2);
+            --editable-border: rgba(0, 0, 0, 0.2);
             --zoom-controls-bg: white;
             --annotation-tools-bg: white;
             --context-menu-bg: white;
@@ -28,8 +28,8 @@
             --button-bg: #0f3460;
             --button-hover: #16213e;
             --highlight-color: rgba(255, 215, 0, 0.5);
-            --editable-bg: rgba(30, 30, 60, 0.2);
-            --editable-border: rgba(255,255,255,0.3);
+            --editable-bg: rgba(30, 30, 60, 0.3);
+            --editable-border: rgba(255, 255, 255, 0.3);
             --zoom-controls-bg: #2d2d42;
             --annotation-tools-bg: #2d2d42;
             --context-menu-bg: #2d2d42;
@@ -197,12 +197,6 @@
             color: #999;
             font-size: 14px;
         }
-        #madeBy {
-            text-align: center;
-            margin: 10px;
-            color: var(--header-bg);
-            font-weight: bold;
-        }
         .highlight {
             background-color: var(--highlight-color);
             cursor: pointer;
@@ -368,129 +362,6 @@
         .slider.round:before {
             border-radius: 50%;
         }
-        .unity-ad-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            transform: translateY(20px);
-            opacity: 0;
-            transition: all 0.8s ease-out;
-            display: none;
-        }
-        .unity-ad {
-            background: rgba(255,255,255,0.97);
-            border-radius: 16px;
-            padding: 20px;
-            width: 240px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-            border: 1px solid rgba(0,0,0,0.08);
-            overflow: hidden;
-            position: relative;
-            transition: all 0.4s;
-        }
-        .unity-ad:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-        .unity-logo {
-            color: #1a73e8;
-            font-weight: 800;
-            font-size: 20px;
-            margin-bottom: 8px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: linear-gradient(90deg, #1a73e8, #34a853);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientShift 8s infinite alternate;
-        }
-        .unity-slogan {
-            color: #555;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 16px;
-            line-height: 1.4;
-            font-style: italic;
-        }
-        .unity-cta {
-            display: block;
-            background: linear-gradient(135deg, #1a73e8, #34a853);
-            color: white;
-            text-align: center;
-            padding: 12px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 15px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s;
-            box-shadow: 0 4px 8px rgba(26,115,232,0.2);
-        }
-        .unity-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(26,115,232,0.3);
-        }
-        .unity-cta:active {
-            transform: translateY(0);
-        }
-        .telegram-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            opacity: 0.8;
-            transition: all 0.3s;
-        }
-        .unity-cta:hover .telegram-icon {
-            transform: translateY(-50%) translateX(3px);
-            opacity: 1;
-        }
-        .pulse-effect {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 16px;
-            background: radial-gradient(circle at center, rgba(26,115,232,0.1) 0%, transparent 70%);
-            animation: pulse 4s infinite;
-            pointer-events: none;
-            opacity: 0;
-        }
-        .unity-close-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 24px;
-            height: 24px;
-            background: rgba(0,0,0,0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 10;
-            border: none;
-            color: #555;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .unity-close-btn:hover {
-            background: rgba(0,0,0,0.2);
-            transform: rotate(90deg);
-        }
-        @keyframes gradientShift {
-            0% {
-                background-position: 0% 50%;
-            }
-            100% {
-                background-position: 100% 50%;
-            }
-        }
     </style>
 </head>
 <body>
@@ -508,17 +379,17 @@
         <input type="file" id="fileInput" accept="application/pdf">
         <p class="welcome">Добро пожаловать на IELTS Reading Simulator</p>
         <p class="instruction">Загрузите ваш IELTS Reading PDF, чтобы начать</p>
-        <button id="startBtn" onclick="startTest()">Старт</button>
+        <button id="startBtn">Старт</button>
     </div>
 
     <div id="timer" style="display:none;">60:00</div>
 
     <div id="controls" style="display:none;">
-        <button id="endTestBtn" onclick="endTestFunc()">Завершить тест</button>
+        <button id="endTestBtn">Завершить тест</button>
     </div>
 
     <div id="analyzeControls">
-        <button id="finishAnalyzeBtn" onclick="finishAnalyze()">Завершить анализ</button>
+        <button id="finishAnalyzeBtn">Завершить анализ</button>
     </div>
 
     <div id="pdfContainer" style="display:none;">
@@ -535,440 +406,355 @@
         </div>
         <div id="newTest">
             <h2>✅ Тест завершён!</h2>
-            <button class="result-btn" onclick="location.reload()">Начать новый тест</button>
-            <button class="result-btn" onclick="analyzeTest()">Анализировать</button>
+            <button class="result-btn" id="newTestBtn">Начать новый тест</button>
+            <button class="result-btn" id="analyzeBtn">Анализировать</button>
         </div>
     </div>
 
-    <div id="madeBy">Made by Miraboss Mirzakhidov</div>
     <footer>&copy; 2025 IELTS Reading Simulator</footer>
 
     <div class="zoom-controls" id="zoomControls">
-        <button class="zoom-btn" onclick="zoomOut()">-</button>
+        <button class="zoom-btn" id="zoomOutBtn">-</button>
         <span class="zoom-value">100%</span>
-        <button class="zoom-btn" onclick="zoomIn()">+</button>
+        <button class="zoom-btn" id="zoomInBtn">+</button>
     </div>
 
-    <button class="tools-toggle" id="toolsToggle" onclick="toggleTools()">+</button>
+    <button class="tools-toggle" id="toolsToggle">+</button>
 
     <div class="annotation-tools" id="annotationTools">
-        <button class="annotation-btn" id="highlightToolBtn" onclick="toggleHighlightMode()">Хайлайт</button>
-        <button class="annotation-btn" id="textToolBtn" onclick="toggleTextMode()">Добавить текст</button>
+        <button class="annotation-btn" id="highlightToolBtn">Хайлайт</button>
+        <button class="annotation-btn" id="textToolBtn">Добавить текст</button>
     </div>
 
     <div class="context-menu" id="contextMenu">
-        <div class="context-menu-item delete-btn" onclick="deleteSelectedItem()">Удалить</div>
-    </div>
-
-    <div class="unity-ad-container">
-        <button class="unity-close-btn" onclick="hideAd()">×</button>
-        <div class="unity-ad">
-            <div class="pulse-effect"></div>
-            <div class="unity-logo">UNITY FOR CHANGE</div>
-            <div class="unity-slogan">Together we can build a better future</div>
-            <a href="https://t.me/unityyforchange" target="_blank" class="unity-cta">
-                Click to learn more
-                <span class="telegram-icon">➤</span>
-            </a>
-        </div>
+        <div class="context-menu-item delete-btn">Удалить</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
     <script>
-        // Core variables
-        const fileInput = document.getElementById('fileInput');
-        const pdfTextViewer = document.getElementById('pdfTextViewer');
-        const pdfQuestionsViewer = document.getElementById('pdfQuestionsViewer');
-        const uploadSection = document.getElementById('uploadSection');
-        const pdfContainer = document.getElementById('pdfContainer');
-        const timerDisplay = document.getElementById('timer');
-        const endTest = document.getElementById('endTest');
-        const testHistory = document.getElementById('testHistory');
-        const controls = document.getElementById('controls');
-        const analyzeControls = document.getElementById('analyzeControls');
-        const zoomControls = document.getElementById('zoomControls');
-        const annotationTools = document.getElementById('annotationTools');
-        const toolsToggle = document.getElementById('toolsToggle');
-        const highlightToolBtn = document.getElementById('highlightToolBtn');
-        const textToolBtn = document.getElementById('textToolBtn');
-        const contextMenu = document.getElementById('contextMenu');
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const unityAdContainer = document.querySelector('.unity-ad-container');
-        
-        // State variables
-        let countdown;
-        let totalTime = 60 * 60;
-        let loadedFileName = "";
-        let currentPDFData = null;
-        let isHighlighting = false;
-        let isTextMode = false;
-        let currentScale = 1.0;
-        const scaleStep = 0.1;
-        const minScale = 0.5;
-        const maxScale = 3.0;
-        let toolsVisible = true;
-        let selectedItem = null;
-        let isAnalysisMode = false;
-        
-        // Annotation storage
-        const STORAGE_KEY = 'ieltsReadingData_v3';
-        let highlights = {
-            left: [],  // For pdfTextViewer
-            right: []  // For pdfQuestionsViewer
+        // Core elements
+        const elements = {
+            fileInput: document.getElementById('fileInput'),
+            pdfTextViewer: document.getElementById('pdfTextViewer'),
+            pdfQuestionsViewer: document.getElementById('pdfQuestionsViewer'),
+            uploadSection: document.getElementById('uploadSection'),
+            pdfContainer: document.getElementById('pdfContainer'),
+            timerDisplay: document.getElementById('timer'),
+            endTest: document.getElementById('endTest'),
+            testHistory: document.getElementById('testHistory'),
+            controls: document.getElementById('controls'),
+            analyzeControls: document.getElementById('analyzeControls'),
+            zoomControls: document.getElementById('zoomControls'),
+            annotationTools: document.getElementById('annotationTools'),
+            toolsToggle: document.getElementById('toolsToggle'),
+            highlightToolBtn: document.getElementById('highlightToolBtn'),
+            textToolBtn: document.getElementById('textToolBtn'),
+            contextMenu: document.getElementById('contextMenu'),
+            darkModeToggle: document.getElementById('darkModeToggle'),
+            startBtn: document.getElementById('startBtn'),
+            endTestBtn: document.getElementById('endTestBtn'),
+            finishAnalyzeBtn: document.getElementById('finishAnalyzeBtn'),
+            newTestBtn: document.getElementById('newTestBtn'),
+            analyzeBtn: document.getElementById('analyzeBtn'),
+            zoomInBtn: document.getElementById('zoomInBtn'),
+            zoomOutBtn: document.getElementById('zoomOutBtn')
         };
-        let textAnnotations = [];
 
-        // Dark mode toggle
-        darkModeToggle.addEventListener('change', function() {
-            document.body.classList.toggle('dark-mode', this.checked);
-            localStorage.setItem('darkMode', this.checked);
-        });
+        // App state
+        const state = {
+            countdown: null,
+            totalTime: 60 * 60,
+            loadedFileName: "",
+            currentPDFData: null,
+            isHighlighting: false,
+            isTextMode: false,
+            currentScale: 1.0,
+            scaleStep: 0.1,
+            minScale: 0.5,
+            maxScale: 3.0,
+            toolsVisible: false,
+            selectedItem: null,
+            isAnalysisMode: false,
+            highlights: { left: [], right: [] },
+            textAnnotations: [],
+            STORAGE_KEY: 'ieltsReadingDataFinal'
+        };
 
-        // Check for saved dark mode preference
-        if (localStorage.getItem('darkMode') === 'true') {
-            darkModeToggle.checked = true;
-            document.body.classList.add('dark-mode');
-        }
+        // Initialize dark mode
+        function initDarkMode() {
+            elements.darkModeToggle.addEventListener('change', function() {
+                document.body.classList.toggle('dark-mode', this.checked);
+                localStorage.setItem('darkMode', this.checked);
+            });
 
-        function showUnityAd() {
-            const isStartPage = uploadSection.style.display !== "none";
-            const isEndPage = endTest.style.display === "flex";
-            
-            if (isStartPage || isEndPage) {
-                unityAdContainer.style.display = 'block';
-                setTimeout(() => {
-                    unityAdContainer.style.opacity = '1';
-                    unityAdContainer.style.transform = 'translateY(0)';
-                }, 100);
-            } else {
-                unityAdContainer.style.display = 'none';
+            if (localStorage.getItem('darkMode') === 'true') {
+                elements.darkModeToggle.checked = true;
+                document.body.classList.add('dark-mode');
             }
         }
 
-        function hideAd() {
-            unityAdContainer.style.opacity = '0';
-            unityAdContainer.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-                unityAdContainer.style.display = 'none';
-            }, 600);
-        }
-
-        function toggleTools() {
-            toolsVisible = !toolsVisible;
-            annotationTools.style.display = toolsVisible ? 'block' : 'none';
-            toolsToggle.textContent = toolsVisible ? '×' : '+';
-        }
-
-        function zoomIn() {
-            if (currentScale < maxScale) {
-                currentScale += scaleStep;
-                updateZoom();
-            }
-        }
-
-        function zoomOut() {
-            if (currentScale > minScale) {
-                currentScale -= scaleStep;
-                updateZoom();
-            }
-        }
-
-        function updateZoom() {
-            document.querySelector('.zoom-value').textContent = `${Math.round(currentScale * 100)}%`;
-            if (currentPDFData) {
-                loadPDF(currentPDFData);
-            }
-        }
-
-        function updateZoomDisplay() {
-            document.querySelector('.zoom-value').textContent = `${Math.round(currentScale * 100)}%`;
-        }
-
-        // Initialize highlighting for both viewers
-        function setupHighlighting() {
-            setupHighlightingForViewer(pdfTextViewer, 'left');
-            setupHighlightingForViewer(pdfQuestionsViewer, 'right');
-        }
-
-        function setupHighlightingForViewer(viewer, side) {
-            let isDragging = false;
-            let startX, startY;
-            let currentHighlight = null;
-
-            viewer.addEventListener('mousedown', e => {
-                if (!isHighlighting || e.target.tagName !== 'CANVAS') return;
-                
-                isDragging = true;
-                const rect = viewer.getBoundingClientRect();
-                startX = e.clientX - rect.left + viewer.scrollLeft;
-                startY = e.clientY - rect.top + viewer.scrollTop;
-                
-                currentHighlight = createHighlight(startX, startY, 0, 0, viewer, side);
-                e.preventDefault();
-            });
-
-            viewer.addEventListener('mousemove', e => {
-                if (!isDragging || !currentHighlight) return;
-                
-                const rect = viewer.getBoundingClientRect();
-                const currentX = e.clientX - rect.left + viewer.scrollLeft;
-                const currentY = e.clientY - rect.top + viewer.scrollTop;
-                
-                const width = currentX - startX;
-                const height = currentY - startY;
-                
-                currentHighlight.element.style.width = Math.abs(width) + 'px';
-                currentHighlight.element.style.height = Math.abs(height) + 'px';
-                
-                if (width < 0) {
-                    currentHighlight.element.style.left = currentX + 'px';
-                    currentHighlight.x = currentX;
-                }
-                if (height < 0) {
-                    currentHighlight.element.style.top = currentY + 'px';
-                    currentHighlight.y = currentY;
-                }
-                
-                currentHighlight.width = Math.abs(width);
-                currentHighlight.height = Math.abs(height);
-            });
-
-            viewer.addEventListener('mouseup', () => {
-                if (isDragging && currentHighlight) {
-                    if (currentHighlight.width > 5 && currentHighlight.height > 5) {
-                        saveAnnotationState();
-                    } else {
-                        currentHighlight.element.remove();
-                        highlights[side] = highlights[side].filter(h => h.id !== currentHighlight.id);
-                    }
-                }
-                isDragging = false;
-                currentHighlight = null;
-            });
-
-            viewer.addEventListener('mouseleave', () => {
-                if (isDragging && currentHighlight) {
-                    saveAnnotationState();
-                }
-                isDragging = false;
-                currentHighlight = null;
-            });
-        }
-
+        // Annotation functions
         function createHighlight(x, y, width, height, viewer, side, id = 'hl-' + Date.now()) {
             const highlight = document.createElement('div');
             highlight.className = 'highlight-area highlight';
             highlight.id = id;
-            highlight.style.left = x + 'px';
-            highlight.style.top = y + 'px';
-            highlight.style.width = width + 'px';
-            highlight.style.height = height + 'px';
+            highlight.style.left = `${x}px`;
+            highlight.style.top = `${y}px`;
+            highlight.style.width = `${width}px`;
+            highlight.style.height = `${height}px`;
             
             viewer.appendChild(highlight);
             
-            const highlightObj = {
+            const highlightData = {
                 id,
                 x,
                 y,
                 width,
                 height,
-                element: highlight,
-                side
+                side,
+                element: highlight
             };
             
-            highlights[side].push(highlightObj);
+            state.highlights[side].push(highlightData);
+            saveState();
             
-            highlight.addEventListener('click', function(e) {
+            highlight.addEventListener('click', (e) => {
                 e.stopPropagation();
-                selectedItem = this;
+                state.selectedItem = highlight;
             });
             
-            return highlightObj;
+            return highlight;
         }
 
-        function createTextAnnotation(x, y, text = '', viewer = pdfQuestionsViewer, id = 'txt-' + Date.now()) {
+        function createTextAnnotation(x, y, content = '', viewer, id = 'txt-' + Date.now()) {
+            const side = viewer === elements.pdfTextViewer ? 'left' : 'right';
             const editable = document.createElement('div');
             editable.className = 'editable-text';
             editable.contentEditable = true;
             editable.id = id;
-            editable.style.left = x + 'px';
-            editable.style.top = y + 'px';
-            editable.innerText = text;
+            editable.style.left = `${x}px`;
+            editable.style.top = `${y}px`;
+            editable.textContent = content;
             
             viewer.appendChild(editable);
             
-            // Auto-focus and select text when created
+            // Auto-focus and select
             setTimeout(() => {
                 editable.focus();
                 const range = document.createRange();
                 range.selectNodeContents(editable);
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
             }, 10);
             
-            const annotation = {
+            const textData = {
                 id,
                 x,
                 y,
-                text,
-                element: editable,
-                viewer: viewer.id
+                content,
+                side,
+                element: editable
             };
             
-            textAnnotations.push(annotation);
+            state.textAnnotations.push(textData);
+            saveState();
             
-            // Auto-save on any change
             editable.addEventListener('input', () => {
-                annotation.text = editable.innerText;
-                saveAnnotationState();
+                const textObj = state.textAnnotations.find(t => t.id === id);
+                if (textObj) textObj.content = editable.textContent;
+                saveState();
             });
             
-            editable.addEventListener('click', function(e) {
+            editable.addEventListener('click', (e) => {
                 e.stopPropagation();
-                selectedItem = this;
+                state.selectedItem = editable;
             });
             
-            // Save when losing focus
-            editable.addEventListener('blur', saveAnnotationState);
+            editable.addEventListener('blur', () => {
+                saveState();
+            });
             
-            return annotation;
+            return editable;
         }
 
-        function saveAnnotationState() {
+        // Setup event handlers
+        function setupHighlightHandlers() {
+            [elements.pdfTextViewer, elements.pdfQuestionsViewer].forEach(viewer => {
+                let isDrawing = false;
+                let startX, startY;
+                let currentHighlight = null;
+                const side = viewer === elements.pdfTextViewer ? 'left' : 'right';
+                
+                viewer.addEventListener('mousedown', (e) => {
+                    if (!state.isHighlighting || e.target.tagName !== 'CANVAS') return;
+                    
+                    isDrawing = true;
+                    const rect = viewer.getBoundingClientRect();
+                    startX = e.clientX - rect.left + viewer.scrollLeft;
+                    startY = e.clientY - rect.top + viewer.scrollTop;
+                    
+                    currentHighlight = createHighlight(startX, startY, 0, 0, viewer, side);
+                });
+                
+                viewer.addEventListener('mousemove', (e) => {
+                    if (!isDrawing || !currentHighlight) return;
+                    
+                    const rect = viewer.getBoundingClientRect();
+                    const currentX = e.clientX - rect.left + viewer.scrollLeft;
+                    const currentY = e.clientY - rect.top + viewer.scrollTop;
+                    
+                    const width = currentX - startX;
+                    const height = currentY - startY;
+                    
+                    const absWidth = Math.abs(width);
+                    const absHeight = Math.abs(height);
+                    
+                    if (absWidth > 5 && absHeight > 5) {
+                        currentHighlight.style.width = `${absWidth}px`;
+                        currentHighlight.style.height = `${absHeight}px`;
+                        
+                        if (width < 0) {
+                            currentHighlight.style.left = `${currentX}px`;
+                        }
+                        if (height < 0) {
+                            currentHighlight.style.top = `${currentY}px`;
+                        }
+                    }
+                });
+                
+                viewer.addEventListener('mouseup', () => {
+                    if (isDrawing && currentHighlight) {
+                        const width = parseInt(currentHighlight.style.width);
+                        const height = parseInt(currentHighlight.style.height);
+                        
+                        if (width <= 5 || height <= 5) {
+                            currentHighlight.remove();
+                            state.highlights[side] = state.highlights[side].filter(h => h.id !== currentHighlight.id);
+                            saveState();
+                        }
+                    }
+                    isDrawing = false;
+                    currentHighlight = null;
+                });
+            });
+        }
+
+        function setupTextHandlers() {
+            [elements.pdfTextViewer, elements.pdfQuestionsViewer].forEach(viewer => {
+                viewer.addEventListener('click', (e) => {
+                    if (!state.isTextMode || e.target.tagName !== 'CANVAS') return;
+                    
+                    const rect = viewer.getBoundingClientRect();
+                    const x = e.clientX - rect.left + viewer.scrollLeft;
+                    const y = e.clientY - rect.top + viewer.scrollTop;
+                    
+                    createTextAnnotation(x, y, '', viewer);
+                });
+            });
+        }
+
+        // State management
+        function saveState() {
             const data = {
-                highlights: {
-                    left: highlights.left.map(h => ({
-                        id: h.id,
-                        x: h.x,
-                        y: h.y,
-                        width: h.width,
-                        height: h.height
-                    })),
-                    right: highlights.right.map(h => ({
-                        id: h.id,
-                        x: h.x,
-                        y: h.y,
-                        width: h.width,
-                        height: h.height
-                    }))
-                },
-                textAnnotations: textAnnotations.map(a => ({
-                    id: a.id,
-                    x: a.x,
-                    y: a.y,
-                    text: a.text,
-                    viewer: a.viewer
-                })),
-                scrollPositions: {
-                    left: {
-                        x: pdfTextViewer.scrollLeft,
-                        y: pdfTextViewer.scrollTop
-                    },
-                    right: {
-                        x: pdfQuestionsViewer.scrollLeft,
-                        y: pdfQuestionsViewer.scrollTop
+                version: 2,
+                highlights: state.highlights,
+                textAnnotations: state.textAnnotations,
+                viewerState: {
+                    zoom: state.currentScale,
+                    scroll: {
+                        left: elements.pdfTextViewer.scrollLeft,
+                        right: elements.pdfQuestionsViewer.scrollLeft
                     }
                 },
-                zoomLevel: currentScale,
-                lastFile: loadedFileName
+                currentFile: state.loadedFileName
             };
             
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            localStorage.setItem(state.STORAGE_KEY, JSON.stringify(data));
         }
 
-        function restoreAnnotationState() {
-            const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        function restoreState() {
+            const savedData = JSON.parse(localStorage.getItem(state.STORAGE_KEY));
             if (!savedData) return;
+
+            // Clear existing annotations
+            document.querySelectorAll('.highlight-area').forEach(el => el.remove());
+            document.querySelectorAll('.editable-text').forEach(el => el.remove());
 
             // Restore highlights
             if (savedData.highlights) {
-                savedData.highlights.left.forEach(data => {
-                    createHighlight(
-                        data.x, 
-                        data.y, 
-                        data.width, 
-                        data.height, 
-                        pdfTextViewer, 
-                        'left',
-                        data.id
-                    );
-                });
-                
-                savedData.highlights.right.forEach(data => {
-                    createHighlight(
-                        data.x, 
-                        data.y, 
-                        data.width, 
-                        data.height, 
-                        pdfQuestionsViewer, 
-                        'right',
-                        data.id
-                    );
+                Object.entries(savedData.highlights).forEach(([side, highlights]) => {
+                    highlights.forEach(hl => {
+                        const viewer = side === 'left' ? elements.pdfTextViewer : elements.pdfQuestionsViewer;
+                        const highlight = createHighlight(hl.x, hl.y, hl.width, hl.height, viewer, side, hl.id);
+                        if (hl.element) {
+                            highlight.style.left = hl.element.style.left;
+                            highlight.style.top = hl.element.style.top;
+                            highlight.style.width = hl.element.style.width;
+                            highlight.style.height = hl.element.style.height;
+                        }
+                    });
                 });
             }
 
             // Restore text annotations
             if (savedData.textAnnotations) {
-                savedData.textAnnotations.forEach(data => {
-                    const viewer = data.viewer === 'pdfTextViewer' ? pdfTextViewer : pdfQuestionsViewer;
-                    createTextAnnotation(
-                        data.x,
-                        data.y,
-                        data.text,
-                        viewer,
-                        data.id
-                    );
+                savedData.textAnnotations.forEach(text => {
+                    const viewer = text.side === 'left' ? elements.pdfTextViewer : elements.pdfQuestionsViewer;
+                    createTextAnnotation(text.x, text.y, text.content, viewer, text.id);
                 });
             }
 
-            // Restore scroll positions after a small delay
-            setTimeout(() => {
-                if (savedData.scrollPositions) {
-                    pdfTextViewer.scrollLeft = savedData.scrollPositions.left.x;
-                    pdfTextViewer.scrollTop = savedData.scrollPositions.left.y;
-                    pdfQuestionsViewer.scrollLeft = savedData.scrollPositions.right.x;
-                    pdfQuestionsViewer.scrollTop = savedData.scrollPositions.right.y;
-                }
-            }, 100);
-
-            // Restore zoom
-            if (savedData.zoomLevel) {
-                currentScale = savedData.zoomLevel;
+            // Restore zoom and scroll
+            if (savedData.viewerState) {
+                state.currentScale = savedData.viewerState.zoom || 1.0;
                 updateZoomDisplay();
+                
+                setTimeout(() => {
+                    if (savedData.viewerState.scroll) {
+                        elements.pdfTextViewer.scrollLeft = savedData.viewerState.scroll.left || 0;
+                        elements.pdfQuestionsViewer.scrollLeft = savedData.viewerState.scroll.right || 0;
+                    }
+                }, 100);
             }
         }
 
+        // PDF functions
         function loadPDF(pdfData) {
             // Clear previous content but preserve annotations
-            Array.from(pdfTextViewer.children).forEach(child => {
-                if (child.tagName !== 'CANVAS' && !child.classList.contains('highlight-area')) child.remove();
-            });
-            Array.from(pdfQuestionsViewer.children).forEach(child => {
+            Array.from(elements.pdfTextViewer.children).forEach(child => {
                 if (child.tagName !== 'CANVAS' && !child.classList.contains('highlight-area') && !child.classList.contains('editable-text')) {
                     child.remove();
                 }
             });
+            
+            Array.from(elements.pdfQuestionsViewer.children).forEach(child => {
+                if (child.tagName !== 'CANVAS' && !child.classList.contains('highlight-area') && 
+                    !child.classList.contains('editable-text') && child.id !== 'instructionText') {
+                    child.remove();
+                }
+            });
 
-            if (!isAnalysisMode) {
+            if (!state.isAnalysisMode) {
                 const hint = document.createElement('p');
+                hint.id = 'instructionText';
                 hint.style.padding = '10px';
                 hint.style.color = '#999';
                 hint.textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
-                pdfQuestionsViewer.appendChild(hint);
+                elements.pdfQuestionsViewer.appendChild(hint);
             }
             
             pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
                 // Clear existing canvases
-                pdfTextViewer.querySelectorAll('canvas').forEach(c => c.remove());
-                pdfQuestionsViewer.querySelectorAll('canvas').forEach(c => c.remove());
+                elements.pdfTextViewer.querySelectorAll('canvas').forEach(c => c.remove());
+                elements.pdfQuestionsViewer.querySelectorAll('canvas').forEach(c => c.remove());
                 
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                     pdf.getPage(pageNum).then(page => {
-                        const viewport = page.getViewport({scale: currentScale});
+                        const viewport = page.getViewport({scale: state.currentScale});
                         
                         // Create canvas for both viewers
-                        [pdfTextViewer, pdfQuestionsViewer].forEach(viewer => {
+                        [elements.pdfTextViewer, elements.pdfQuestionsViewer].forEach(viewer => {
                             const canvas = document.createElement('canvas');
                             const context = canvas.getContext('2d');
                             canvas.height = viewport.height;
@@ -982,235 +768,243 @@
                 
                 // Restore annotations after PDF renders
                 setTimeout(() => {
-                    restoreAnnotationState();
-                    
-                    // Setup text annotation on questions viewer
-                    pdfQuestionsViewer.addEventListener('click', function(e) {
-                        if (isTextMode && e.target.tagName === 'CANVAS') {
-                            const rect = pdfQuestionsViewer.getBoundingClientRect();
-                            const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
-                            const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
-                            
-                            createTextAnnotation(x, y, '', pdfQuestionsViewer);
-                        }
-                    });
+                    restoreState();
                 }, 300);
             });
         }
 
-        function setupContextMenu() {
-            document.addEventListener('contextmenu', function(e) {
-                if (e.target.classList.contains('highlight-area') || 
-                    e.target.classList.contains('editable-text')) {
-                    e.preventDefault();
-                    selectedItem = e.target;
-                    
-                    contextMenu.style.display = 'block';
-                    contextMenu.style.left = `${e.clientX}px`;
-                    contextMenu.style.top = `${e.clientY}px`;
-                }
-            });
-        }
-
-        function setupTextDeletion() {
-            document.addEventListener('keydown', function(e) {
-                if ((e.key === 'Delete' || e.key === 'Backspace') && selectedItem) {
-                    deleteSelectedItem();
-                }
-            });
-            
-            document.addEventListener('click', function(e) {
-                if (!e.target.classList.contains('editable-text') && 
-                    !e.target.classList.contains('highlight-area')) {
-                    selectedItem = null;
-                    contextMenu.style.display = 'none';
-                }
-            });
-        }
-
-        function deleteSelectedItem() {
-            if (!selectedItem) return;
-            
-            // Remove from highlights
-            for (const side in highlights) {
-                highlights[side] = highlights[side].filter(h => {
-                    if (h.element === selectedItem) {
-                        h.element.remove();
-                        return false;
-                    }
-                    return true;
-                });
-            }
-            
-            // Remove from text annotations
-            textAnnotations = textAnnotations.filter(anno => {
-                if (anno.element === selectedItem) {
-                    anno.element.remove();
-                    return false;
-                }
-                return true;
-            });
-            
-            selectedItem = null;
-            contextMenu.style.display = 'none';
-            saveAnnotationState();
-        }
-
-        function toggleHighlightMode() {
-            isHighlighting = !isHighlighting;
-            isTextMode = false;
-            highlightToolBtn.classList.toggle('active', isHighlighting);
-            textToolBtn.classList.remove('active');
-            
-            if (isHighlighting) {
-                pdfTextViewer.style.cursor = 'crosshair';
-                pdfQuestionsViewer.style.cursor = 'crosshair';
-            } else {
-                pdfTextViewer.style.cursor = 'default';
-                pdfQuestionsViewer.style.cursor = 'default';
+        // Zoom functions
+        function zoomIn() {
+            if (state.currentScale < state.maxScale) {
+                state.currentScale += state.scaleStep;
+                updateZoom();
             }
         }
 
-        function toggleTextMode() {
-            isTextMode = !isTextMode;
-            isHighlighting = false;
-            textToolBtn.classList.toggle('active', isTextMode);
-            highlightToolBtn.classList.remove('active');
-            
-            if (isTextMode) {
-                pdfQuestionsViewer.style.cursor = 'text';
-                if (pdfQuestionsViewer.querySelector('p')) {
-                    pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (режим добавления текста активен)';
-                }
-            } else {
-                pdfQuestionsViewer.style.cursor = 'default';
-                if (pdfQuestionsViewer.querySelector('p')) {
-                    pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
-                }
+        function zoomOut() {
+            if (state.currentScale > state.minScale) {
+                state.currentScale -= state.scaleStep;
+                updateZoom();
             }
         }
 
-        function startTest() {
-            if (!fileInput.files[0]) {
-                alert("Пожалуйста, сначала выберите PDF.");
-                return;
+        function updateZoom() {
+            document.querySelector('.zoom-value').textContent = `${Math.round(state.currentScale * 100)}%`;
+            if (state.currentPDFData) {
+                loadPDF(state.currentPDFData);
             }
-            
-            uploadSection.style.display = "none";
-            pdfContainer.style.display = "flex";
-            controls.style.display = "block";
-            timerDisplay.style.display = "block";
-            zoomControls.style.display = "block";
-            annotationTools.style.display = "block";
-            toolsToggle.style.display = "flex";
-            startTimer();
-            showUnityAd();
-            
-            const fileReader = new FileReader();
-            fileReader.onload = function() {
-                currentPDFData = this.result;
-                loadedFileName = fileInput.files[0].name;
-                loadPDF(currentPDFData);
-                setupHighlighting();
-                setupContextMenu();
-                setupTextDeletion();
-            };
-            fileReader.readAsArrayBuffer(fileInput.files[0]);
         }
 
+        function updateZoomDisplay() {
+            document.querySelector('.zoom-value').textContent = `${Math.round(state.currentScale * 100)}%`;
+        }
+
+        // Timer functions
         function startTimer() {
-            clearInterval(countdown);
-            totalTime = 60 * 60;
+            clearInterval(state.countdown);
+            state.totalTime = 60 * 60;
             updateTimerDisplay();
             
-            countdown = setInterval(() => {
-                totalTime--;
+            state.countdown = setInterval(() => {
+                state.totalTime--;
                 updateTimerDisplay();
                 
-                if (totalTime <= 0) {
-                    clearInterval(countdown);
+                if (state.totalTime <= 0) {
+                    clearInterval(state.countdown);
                     endTestFunc();
                 }
             }, 1000);
         }
 
         function updateTimerDisplay() {
-            let minutes = String(Math.floor(totalTime / 60)).padStart(2, '0');
-            let seconds = String(totalTime % 60).padStart(2, '0');
-            timerDisplay.textContent = `${minutes}:${seconds}`;
+            let minutes = String(Math.floor(state.totalTime / 60)).padStart(2, '0');
+            let seconds = String(state.totalTime % 60).padStart(2, '0');
+            elements.timerDisplay.textContent = `${minutes}:${seconds}`;
+        }
+
+        // Mode functions
+        function toggleHighlightMode() {
+            state.isHighlighting = !state.isHighlighting;
+            state.isTextMode = false;
+            elements.highlightToolBtn.classList.toggle('active', state.isHighlighting);
+            elements.textToolBtn.classList.remove('active');
+            
+            if (state.isHighlighting) {
+                elements.pdfTextViewer.style.cursor = 'crosshair';
+                elements.pdfQuestionsViewer.style.cursor = 'crosshair';
+            } else {
+                elements.pdfTextViewer.style.cursor = 'default';
+                elements.pdfQuestionsViewer.style.cursor = 'default';
+            }
+        }
+
+        function toggleTextMode() {
+            state.isTextMode = !state.isTextMode;
+            state.isHighlighting = false;
+            elements.textToolBtn.classList.toggle('active', state.isTextMode);
+            elements.highlightToolBtn.classList.remove('active');
+            
+            if (state.isTextMode) {
+                elements.pdfQuestionsViewer.style.cursor = 'text';
+                const hint = elements.pdfQuestionsViewer.querySelector('#instructionText');
+                if (hint) hint.textContent = '📝 Кликните на любое место, чтобы добавить текст (режим добавления текста активен)';
+            } else {
+                elements.pdfQuestionsViewer.style.cursor = 'default';
+                const hint = elements.pdfQuestionsViewer.querySelector('#instructionText');
+                if (hint) hint.textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
+            }
+        }
+
+        // Test flow functions
+        function startTest() {
+            if (!elements.fileInput.files[0]) {
+                alert("Пожалуйста, сначала выберите PDF.");
+                return;
+            }
+            
+            elements.uploadSection.style.display = "none";
+            elements.pdfContainer.style.display = "flex";
+            elements.controls.style.display = "block";
+            elements.timerDisplay.style.display = "block";
+            elements.zoomControls.style.display = "block";
+            elements.annotationTools.style.display = "block";
+            elements.toolsToggle.style.display = "flex";
+            startTimer();
+            
+            const fileReader = new FileReader();
+            fileReader.onload = function() {
+                state.currentPDFData = this.result;
+                state.loadedFileName = elements.fileInput.files[0].name;
+                loadPDF(state.currentPDFData);
+                setupHighlightHandlers();
+                setupTextHandlers();
+            };
+            fileReader.readAsArrayBuffer(elements.fileInput.files[0]);
         }
 
         function endTestFunc() {
-            clearInterval(countdown);
-            pdfContainer.style.display = "none";
-            timerDisplay.style.display = "none";
-            controls.style.display = "none";
-            zoomControls.style.display = "none";
-            annotationTools.style.display = "none";
-            toolsToggle.style.display = "none";
-            endTest.style.display = "flex";
-            addTestToHistory(loadedFileName);
-            saveAnnotationState();
-            showUnityAd();
+            clearInterval(state.countdown);
+            elements.pdfContainer.style.display = "none";
+            elements.timerDisplay.style.display = "none";
+            elements.controls.style.display = "none";
+            elements.zoomControls.style.display = "none";
+            elements.annotationTools.style.display = "none";
+            elements.toolsToggle.style.display = "none";
+            elements.endTest.style.display = "flex";
+            addTestToHistory(state.loadedFileName);
+            saveState();
         }
 
         function analyzeTest() {
-            isAnalysisMode = true;
-            endTest.style.display = "none";
-            pdfContainer.style.display = "flex";
-            analyzeControls.style.display = "block";
-            zoomControls.style.display = "block";
-            annotationTools.style.display = "block";
-            toolsToggle.style.display = "flex";
-            loadPDF(currentPDFData);
+            state.isAnalysisMode = true;
+            elements.endTest.style.display = "none";
+            elements.pdfContainer.style.display = "flex";
+            elements.analyzeControls.style.display = "block";
+            elements.zoomControls.style.display = "block";
+            elements.annotationTools.style.display = "block";
+            elements.toolsToggle.style.display = "flex";
+            loadPDF(state.currentPDFData);
         }
 
         function finishAnalyze() {
-            isAnalysisMode = false;
-            pdfContainer.style.display = "none";
-            analyzeControls.style.display = "none";
-            zoomControls.style.display = "none";
-            annotationTools.style.display = "none";
-            toolsToggle.style.display = "none";
-            uploadSection.style.display = "block";
-            showUnityAd();
+            state.isAnalysisMode = false;
+            elements.pdfContainer.style.display = "none";
+            elements.analyzeControls.style.display = "none";
+            elements.zoomControls.style.display = "none";
+            elements.annotationTools.style.display = "none";
+            elements.toolsToggle.style.display = "none";
+            elements.uploadSection.style.display = "block";
         }
 
         function addTestToHistory(name) {
             if (!name) name = "Неизвестный тест";
             const li = document.createElement('li');
             li.textContent = name;
-            testHistory.appendChild(li);
+            elements.testHistory.appendChild(li);
             const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
             savedHistory.push(name);
             localStorage.setItem('testHistory', JSON.stringify(savedHistory));
         }
 
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', function() {
+        // Initialize
+        function init() {
+            initDarkMode();
+            
+            // Event listeners
+            elements.startBtn.addEventListener('click', startTest);
+            elements.endTestBtn.addEventListener('click', endTestFunc);
+            elements.finishAnalyzeBtn.addEventListener('click', finishAnalyze);
+            elements.newTestBtn.addEventListener('click', () => location.reload());
+            elements.analyzeBtn.addEventListener('click', analyzeTest);
+            elements.highlightToolBtn.addEventListener('click', toggleHighlightMode);
+            elements.textToolBtn.addEventListener('click', toggleTextMode);
+            elements.zoomInBtn.addEventListener('click', zoomIn);
+            elements.zoomOutBtn.addEventListener('click', zoomOut);
+            elements.toolsToggle.addEventListener('click', () => {
+                state.toolsVisible = !state.toolsVisible;
+                elements.annotationTools.style.display = state.toolsVisible ? 'block' : 'none';
+                elements.toolsToggle.textContent = state.toolsVisible ? '×' : '+';
+            });
+            
+            // Context menu
+            document.addEventListener('contextmenu', function(e) {
+                if (e.target.classList.contains('highlight-area') || 
+                    e.target.classList.contains('editable-text')) {
+                    e.preventDefault();
+                    state.selectedItem = e.target;
+                    
+                    elements.contextMenu.style.display = 'block';
+                    elements.contextMenu.style.left = `${e.clientX}px`;
+                    elements.contextMenu.style.top = `${e.clientY}px`;
+                }
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('editable-text') && 
+                    !e.target.classList.contains('highlight-area')) {
+                    state.selectedItem = null;
+                    elements.contextMenu.style.display = 'none';
+                }
+            });
+            
+            document.querySelector('.delete-btn').addEventListener('click', function() {
+                if (!state.selectedItem) return;
+                
+                // Remove from highlights
+                for (const side in state.highlights) {
+                    state.highlights[side] = state.highlights[side].filter(h => {
+                        if (h.element === state.selectedItem) {
+                            h.element.remove();
+                            return false;
+                        }
+                        return true;
+                    });
+                }
+                
+                // Remove from text annotations
+                state.textAnnotations = state.textAnnotations.filter(anno => {
+                    if (anno.element === state.selectedItem) {
+                        anno.element.remove();
+                        return false;
+                    }
+                    return true;
+                });
+                
+                state.selectedItem = null;
+                elements.contextMenu.style.display = 'none';
+                saveState();
+            });
+            
             // Load test history
             const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
             savedHistory.forEach(name => addTestToHistory(name));
-            
-            // Check for existing data
-            const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY));
-            if (savedData && savedData.lastFile) {
-                loadedFileName = savedData.lastFile;
-            }
-            
-            // Hide context menu on click outside
-            document.addEventListener('click', function() {
-                contextMenu.style.display = 'none';
-            });
-            
-            // Show ad after delay
-            setTimeout(showUnityAd, 1000);
-        });
+        }
+
+        // Start the app
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
-
-
 
 
 
