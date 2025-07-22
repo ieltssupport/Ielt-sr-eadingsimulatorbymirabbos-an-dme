@@ -108,19 +108,15 @@
         button:active {
             transform: translateY(0);
         }
-        /* Анимация для кнопки Start */
         #startBtn {
             animation: pulse 2s infinite;
         }
-        /* Анимация для кнопки Завершить тест */
         #endTestBtn:hover {
             animation: shake 0.5s;
         }
-        /* Анимация для кнопок Начать новый тест и Анализировать */
         .result-btn:hover {
             animation: bounce 0.5s;
         }
-        /* Анимация для кнопки Завершить анализ */
         #finishAnalyzeBtn:hover {
             animation: flip 0.6s;
         }
@@ -194,8 +190,6 @@
             width: 40px;
             text-align: center;
         }
-        
-        /* Новые стили для панели инструментов */
         .annotation-tools {
             position: fixed;
             top: 80px;
@@ -208,7 +202,6 @@
             display: none;
             transition: all 0.3s;
         }
-        
         .annotation-btn {
             display: block;
             margin: 5px 0;
@@ -219,16 +212,13 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        
         .annotation-btn:hover {
             background: #e0e0e0;
         }
-        
         .annotation-btn.active {
             background: #1a73e8;
             color: white;
         }
-        
         .tools-toggle {
             position: fixed;
             top: 20px;
@@ -247,13 +237,10 @@
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        
         .tools-toggle:hover {
             background: #1558b0;
             transform: scale(1.1);
         }
-        
-        /* Стили для контекстного меню */
         .context-menu {
             position: absolute;
             background: white;
@@ -264,19 +251,162 @@
             min-width: 100px;
             display: none;
         }
-        
         .context-menu-item {
             padding: 6px 12px;
             cursor: pointer;
             font-size: 14px;
         }
-        
         .context-menu-item:hover {
             background: #f0f0f0;
         }
-        
         .delete-btn {
             color: red;
+        }
+        .unity-ad-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out 3s forwards;
+        }
+        .unity-ad {
+            background: rgba(255,255,255,0.97);
+            border-radius: 16px;
+            padding: 20px;
+            width: 240px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            border: 1px solid rgba(0,0,0,0.08);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.4s;
+        }
+        .unity-ad:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .unity-logo {
+            color: #1a73e8;
+            font-weight: 800;
+            font-size: 20px;
+            margin-bottom: 8px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #1a73e8, #34a853);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 8s infinite alternate;
+        }
+        .unity-slogan {
+            color: #555;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+            line-height: 1.4;
+            font-style: italic;
+        }
+        .unity-cta {
+            display: block;
+            background: linear-gradient(135deg, #1a73e8, #34a853);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s;
+            box-shadow: 0 4px 8px rgba(26,115,232,0.2);
+        }
+        .unity-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(26,115,232,0.3);
+        }
+        .unity-cta:active {
+            transform: translateY(0);
+        }
+        .telegram-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            opacity: 0.8;
+            transition: all 0.3s;
+        }
+        .unity-cta:hover .telegram-icon {
+            transform: translateY(-50%) translateX(3px);
+            opacity: 1;
+        }
+        .pulse-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            background: radial-gradient(circle at center, rgba(26,115,232,0.1) 0%, transparent 70%);
+            animation: pulse 4s infinite;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .unity-close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+            border: none;
+            color: #555;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .unity-close-btn:hover {
+            background: rgba(0,0,0,0.2);
+            transform: rotate(90deg);
+        }
+        .unity-ad-container.hide {
+            animation: fadeOutDown 0.6s ease forwards;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+        @keyframes fadeOutDown {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+                visibility: hidden;
+            }
         }
     </style>
 </head>
@@ -342,6 +472,20 @@
         <div class="context-menu-item delete-btn" onclick="deleteSelectedItem()">Удалить</div>
     </div>
 
+    <!-- Рекламный блок Unity for Change -->
+    <div class="unity-ad-container">
+        <button class="unity-close-btn" onclick="hideAd()">×</button>
+        <div class="unity-ad">
+            <div class="pulse-effect"></div>
+            <div class="unity-logo">UNITY FOR CHANGE</div>
+            <div class="unity-slogan">Together we can build a better future</div>
+            <a href="https://t.me/unityyforchange" target="_blank" class="unity-cta">
+                Click to learn more
+                <span class="telegram-icon">➤</span>
+            </a>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
     <script>
         const fileInput = document.getElementById('fileInput');
@@ -386,6 +530,21 @@
             document.addEventListener('click', () => {
                 contextMenu.style.display = 'none';
             });
+            
+            // Анимация для рекламного блока
+            const pulse = document.querySelector('.pulse-effect');
+            if(pulse) {
+                const randomDelay = Math.random() * 2;
+                pulse.style.animationDelay = `${randomDelay}s`;
+                
+                setInterval(() => {
+                    const newPulse = pulse.cloneNode(true);
+                    pulse.parentNode.appendChild(newPulse);
+                    setTimeout(() => {
+                        newPulse.remove();
+                    }, 4000);
+                }, 4000);
+            }
         });
 
         function toggleTools() {
@@ -502,6 +661,15 @@
             isTextMode = false;
             highlightToolBtn.classList.toggle('active', isHighlighting);
             textToolBtn.classList.remove('active');
+            
+            // Меняем курсор при включенном режиме хайлайта
+            if (isHighlighting) {
+                pdfTextViewer.style.cursor = 'crosshair';
+                pdfQuestionsViewer.style.cursor = 'crosshair';
+            } else {
+                pdfTextViewer.style.cursor = 'default';
+                pdfQuestionsViewer.style.cursor = 'default';
+            }
         }
 
         function toggleTextMode() {
@@ -736,6 +904,15 @@
                     });
                 }
             });
+        }
+        
+        function hideAd() {
+            const adContainer = document.querySelector('.unity-ad-container');
+            adContainer.classList.add('hide');
+            
+            setTimeout(() => {
+                adContainer.style.display = 'none';
+            }, 600);
         }
     </script>
 </body>
