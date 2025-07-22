@@ -272,6 +272,7 @@
             transform: translateY(20px);
             opacity: 0;
             transition: all 0.8s ease-out;
+            display: none;
         }
         .unity-ad {
             background: rgba(255,255,255,0.97);
@@ -377,9 +378,6 @@
         .unity-close-btn:hover {
             background: rgba(0,0,0,0.2);
             transform: rotate(90deg);
-        }
-        .unity-ad-container.hide {
-            animation: fadeOutDown 0.6s ease forwards;
         }
         @keyframes fadeInUp {
             from {
@@ -521,16 +519,23 @@
         let selectedItem = null;
 
         function showUnityAd() {
-            const adContainer = document.querySelector('.unity-ad-container');
-            adContainer.style.display = 'block';
-            adContainer.style.opacity = '0';
-            adContainer.style.transform = 'translateY(20px)';
+            const isStartPage = uploadSection.style.display !== "none";
+            const isEndPage = endTest.style.display === "flex";
             
-            setTimeout(() => {
-                adContainer.style.opacity = '1';
-                adContainer.style.transform = 'translateY(0)';
-                adContainer.style.transition = 'all 0.8s ease-out';
-            }, 100);
+            if (isStartPage || isEndPage) {
+                const adContainer = document.querySelector('.unity-ad-container');
+                adContainer.style.display = 'block';
+                adContainer.style.opacity = '0';
+                adContainer.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    adContainer.style.opacity = '1';
+                    adContainer.style.transform = 'translateY(0)';
+                    adContainer.style.transition = 'all 0.8s ease-out';
+                }, 100);
+            } else {
+                document.querySelector('.unity-ad-container').style.display = 'none';
+            }
         }
 
         function toggleTools() {
@@ -574,6 +579,8 @@
                 alert("Пожалуйста, сначала выберите PDF.");
                 return;
             }
+            
+            document.querySelector('.unity-ad-container').style.display = 'none';
             uploadSection.style.display = "none";
             pdfContainer.style.display = "flex";
             controls.style.display = "block";
@@ -582,8 +589,6 @@
             annotationTools.style.display = "block";
             toolsToggle.style.display = "flex";
             startTimer();
-            
-            showUnityAd();
             
             const fileReader = new FileReader();
             fileReader.onload = function() {
@@ -746,9 +751,12 @@
             addTestToHistory(loadedFileName);
             saveAnswers();
             saveHighlights();
+            
+            showUnityAd();
         }
 
         function analyzeTest() {
+            document.querySelector('.unity-ad-container').style.display = 'none';
             endTest.style.display = "none";
             pdfContainer.style.display = "flex";
             analyzeControls.style.display = "block";
@@ -767,6 +775,8 @@
             annotationTools.style.display = "none";
             toolsToggle.style.display = "none";
             uploadSection.style.display = "block";
+            
+            showUnityAd();
         }
 
         function loadPDF(pdfData, isAnalysis = false) {
@@ -923,14 +933,12 @@
                 }, 4000);
             }
             
-            setTimeout(() => {
-                showUnityAd();
-            }, 1000);
+            // Показываем рекламу при загрузке стартовой страницы
+            showUnityAd();
         });
     </script>
 </body>
 </html>
-
 
 
 
