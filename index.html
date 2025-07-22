@@ -259,7 +259,7 @@
             transition: all 0.2s;
         }
         .annotation-btn:hover {
-            background: #e0e0e0;
+            background: #e0e0f0;
         }
         .annotation-btn.active {
             background: var(--button-bg);
@@ -308,7 +308,6 @@
         .delete-btn {
             color: red;
         }
-        /* Dark mode toggle switch */
         .dark-mode-toggle {
             position: fixed;
             top: 20px;
@@ -367,7 +366,6 @@
         .slider.round:before {
             border-radius: 50%;
         }
-        /* Unity Ad styles */
         .unity-ad-container {
             position: fixed;
             bottom: 20px;
@@ -496,7 +494,6 @@
 <body>
     <header>IELTS Reading Simulator</header>
 
-    <!-- Dark mode toggle switch -->
     <div class="dark-mode-toggle">
         <span class="toggle-label">Dark Mode</span>
         <label class="toggle-switch">
@@ -561,7 +558,6 @@
         <div class="context-menu-item delete-btn" onclick="deleteSelectedItem()">Удалить</div>
     </div>
 
-    <!-- Unity Ad Container -->
     <div class="unity-ad-container">
         <button class="unity-close-btn" onclick="hideAd()">×</button>
         <div class="unity-ad">
@@ -577,6 +573,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
     <script>
+        // Core variables
         const fileInput = document.getElementById('fileInput');
         const pdfTextViewer = document.getElementById('pdfTextViewer');
         const pdfQuestionsViewer = document.getElementById('pdfQuestionsViewer');
@@ -596,16 +593,13 @@
         const darkModeToggle = document.getElementById('darkModeToggle');
         const unityAdContainer = document.querySelector('.unity-ad-container');
         
+        // State variables
         let countdown;
         let totalTime = 60 * 60;
         let loadedFileName = "";
         let currentPDFData = null;
         let isHighlighting = false;
         let isTextMode = false;
-        let highlightStartX = 0;
-        let highlightStartY = 0;
-        let currentHighlightArea = null;
-        let highlights = [];
         let currentScale = 1.0;
         const scaleStep = 0.1;
         const minScale = 0.5;
@@ -613,15 +607,14 @@
         let toolsVisible = true;
         let selectedItem = null;
         let isAnalysisMode = false;
-        let elementsData = {
-            text: [],
-            highlights: [],
-            scroll: {
-                textViewer: { scrollTop: 0, scrollLeft: 0 },
-                questionsViewer: { scrollTop: 0, scrollLeft: 0 }
-            }
+        
+        // Annotation storage
+        let highlights = {
+            textViewer: [],
+            questionsViewer: []
         };
-
+        let textAnnotations = [];
+        
         // Dark mode toggle
         darkModeToggle.addEventListener('change', function() {
             document.body.classList.toggle('dark-mode', this.checked);
@@ -680,18 +673,388 @@
         function updateZoom() {
             document.querySelector('.zoom-value').textContent = `${Math.round(currentScale * 100)}%`;
             if (currentPDFData) {
-                loadPDF(currentPDFData, isAnalysisMode);
+                loadPDF(currentPDFData);
             }
         }
 
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file && file.type === "application/pdf") {
-                loadedFileName = file.name;
-            } else {
-                alert("Пожалуйста, загрузите PDF файл.");
+        function updateZoomDisplay() {
+            document.querySelector('.zoom-value').textContent = `${Math.round(currentScale * 100)}%`;
+        }
+
+        // Initialize highlighting for both viewers
+        function setupHighlighting() {
+            setupHighlightingForViewer(pdfTextViewer, 'textViewer');
+            setupHighlightingForViewer(pdfQuestionsViewer, 'questionsViewer');
+        }
+
+        function setupHighlightingForViewer(viewer, viewerType) {
+            let isDragging = false;
+            let startX, startY;
+            let currentHighlight = null;
+
+            viewer.addEventListener('mousedown', e => {
+                if (!isHighlighting || e.target.tagName !== 'CANVAS') return;
+                
+                isDragging = true;
+                const rect = viewer.getBoundingClientRect();
+                startX = e.clientX - rect.left + viewer.scrollLeft;
+                startY = e.clientY - rect.top + viewer.scrollTop;
+                
+                currentHighlight = createHighlight(startX, startY, 0, 0, viewer, viewerType);
+                e.preventDefault();
+            });
+
+            viewer.addEventListener('mousemove', e => {
+                if (!isDragging || !currentHighlight) return;
+                
+                const rect = viewer.getBoundingClientRect();
+                const currentX = e.clientX - rect.left + viewer.scrollLeft;
+                const currentY = e.clientY - rect.top + viewer.scrollTop;
+                
+                const width = currentX - startX;
+                const height = currentY - startY;
+                
+                currentHighlight.element.style.width = Math.abs(width) + 'px';
+                currentHighlight.element.style.height = Math.abs(height) + 'px';
+                
+                if (width < 0) {
+                    currentHighlight.element.style.left = currentX + 'px';
+                    currentHighlight.x = currentX;
+                }
+                if (height < 0) {
+                    currentHighlight.element.style.top = currentY + 'px';
+                    currentHighlight.y = currentY;
+                }
+                
+                currentHighlight.width = Math.abs(width);
+                currentHighlight.height = Math.abs(height);
+            });
+
+            viewer.addEventListener('mouseup', () => {
+                if (isDragging && currentHighlight) {
+                    if (currentHighlight.width > 5 && currentHighlight.height > 5) {
+                        saveAllData();
+                    } else {
+                        currentHighlight.element.remove();
+                        highlights[viewerType] = highlights[viewerType].filter(h => h.id !== currentHighlight.id);
+                    }
+                }
+                isDragging = false;
+                currentHighlight = null;
+            });
+
+            viewer.addEventListener('mouseleave', () => {
+                if (isDragging && currentHighlight) {
+                    saveAllData();
+                }
+                isDragging = false;
+                currentHighlight = null;
+            });
+        }
+
+        function createHighlight(x, y, width, height, viewer, viewerType, id = 'hl-' + Date.now()) {
+            const highlight = document.createElement('div');
+            highlight.className = 'highlight-area highlight';
+            highlight.id = id;
+            highlight.style.left = x + 'px';
+            highlight.style.top = y + 'px';
+            highlight.style.width = width + 'px';
+            highlight.style.height = height + 'px';
+            
+            viewer.appendChild(highlight);
+            
+            const highlightObj = {
+                id,
+                x,
+                y,
+                width,
+                height,
+                element: highlight,
+                viewerType
+            };
+            
+            highlights[viewerType].push(highlightObj);
+            
+            highlight.addEventListener('click', function(e) {
+                e.stopPropagation();
+                selectedItem = this;
+            });
+            
+            return highlightObj;
+        }
+
+        function createTextAnnotation(x, y, text = '', viewer = pdfQuestionsViewer, id = 'txt-' + Date.now()) {
+            const editable = document.createElement('div');
+            editable.className = 'editable-text';
+            editable.contentEditable = true;
+            editable.id = id;
+            editable.style.left = x + 'px';
+            editable.style.top = y + 'px';
+            editable.innerText = text;
+            
+            viewer.appendChild(editable);
+            
+            const annotation = {
+                id,
+                x,
+                y,
+                text,
+                element: editable,
+                viewer: viewer.id
+            };
+            
+            textAnnotations.push(annotation);
+            
+            editable.addEventListener('input', function() {
+                annotation.text = this.innerText;
+                saveAllData();
+            });
+            
+            editable.addEventListener('blur', saveAllData);
+            
+            editable.addEventListener('click', function(e) {
+                e.stopPropagation();
+                selectedItem = this;
+            });
+            
+            return annotation;
+        }
+
+        function setupContextMenu() {
+            document.addEventListener('contextmenu', function(e) {
+                if (e.target.classList.contains('highlight-area') || 
+                    e.target.classList.contains('editable-text')) {
+                    e.preventDefault();
+                    selectedItem = e.target;
+                    
+                    contextMenu.style.display = 'block';
+                    contextMenu.style.left = `${e.clientX}px`;
+                    contextMenu.style.top = `${e.clientY}px`;
+                }
+            });
+        }
+
+        function setupTextDeletion() {
+            document.addEventListener('keydown', function(e) {
+                if ((e.key === 'Delete' || e.key === 'Backspace') && selectedItem) {
+                    deleteSelectedItem();
+                }
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('editable-text') && 
+                    !e.target.classList.contains('highlight-area')) {
+                    selectedItem = null;
+                    contextMenu.style.display = 'none';
+                }
+            });
+        }
+
+        function deleteSelectedItem() {
+            if (!selectedItem) return;
+            
+            // Remove from highlights
+            for (const viewerType in highlights) {
+                highlights[viewerType] = highlights[viewerType].filter(h => {
+                    if (h.element === selectedItem) {
+                        h.element.remove();
+                        return false;
+                    }
+                    return true;
+                });
             }
-        });
+            
+            // Remove from text annotations
+            textAnnotations = textAnnotations.filter(anno => {
+                if (anno.element === selectedItem) {
+                    anno.element.remove();
+                    return false;
+                }
+                return true;
+            });
+            
+            selectedItem = null;
+            contextMenu.style.display = 'none';
+            saveAllData();
+        }
+
+        function toggleHighlightMode() {
+            isHighlighting = !isHighlighting;
+            isTextMode = false;
+            highlightToolBtn.classList.toggle('active', isHighlighting);
+            textToolBtn.classList.remove('active');
+            
+            if (isHighlighting) {
+                pdfTextViewer.style.cursor = 'crosshair';
+                pdfQuestionsViewer.style.cursor = 'crosshair';
+            } else {
+                pdfTextViewer.style.cursor = 'default';
+                pdfQuestionsViewer.style.cursor = 'default';
+            }
+        }
+
+        function toggleTextMode() {
+            isTextMode = !isTextMode;
+            isHighlighting = false;
+            textToolBtn.classList.toggle('active', isTextMode);
+            highlightToolBtn.classList.remove('active');
+            
+            if (isTextMode) {
+                pdfQuestionsViewer.style.cursor = 'text';
+                pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (режим добавления текста активен)';
+            } else {
+                pdfQuestionsViewer.style.cursor = 'default';
+                pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
+            }
+        }
+
+        function saveAllData() {
+            const data = {
+                highlights: {
+                    textViewer: highlights.textViewer.map(h => ({
+                        id: h.id,
+                        x: h.x,
+                        y: h.y,
+                        width: h.width,
+                        height: h.height
+                    })),
+                    questionsViewer: highlights.questionsViewer.map(h => ({
+                        id: h.id,
+                        x: h.x,
+                        y: h.y,
+                        width: h.width,
+                        height: h.height
+                    }))
+                },
+                textAnnotations: textAnnotations.map(a => ({
+                    id: a.id,
+                    x: a.x,
+                    y: a.y,
+                    text: a.text,
+                    viewer: a.viewer
+                })),
+                scale: currentScale,
+                scroll: {
+                    textViewer: {
+                        scrollTop: pdfTextViewer.scrollTop,
+                        scrollLeft: pdfTextViewer.scrollLeft
+                    },
+                    questionsViewer: {
+                        scrollTop: pdfQuestionsViewer.scrollTop,
+                        scrollLeft: pdfQuestionsViewer.scrollLeft
+                    }
+                }
+            };
+            
+            localStorage.setItem('ieltsReadingData', JSON.stringify(data));
+        }
+
+        function restoreAllData() {
+            const savedData = JSON.parse(localStorage.getItem('ieltsReadingData'));
+            if (!savedData) return;
+
+            // Restore scale
+            currentScale = savedData.scale || 1.0;
+            updateZoomDisplay();
+
+            // Restore highlights
+            if (savedData.highlights) {
+                savedData.highlights.textViewer.forEach(data => {
+                    createHighlight(
+                        data.x, 
+                        data.y, 
+                        data.width, 
+                        data.height, 
+                        pdfTextViewer, 
+                        'textViewer',
+                        data.id
+                    );
+                });
+                
+                savedData.highlights.questionsViewer.forEach(data => {
+                    createHighlight(
+                        data.x, 
+                        data.y, 
+                        data.width, 
+                        data.height, 
+                        pdfQuestionsViewer, 
+                        'questionsViewer',
+                        data.id
+                    );
+                });
+            }
+
+            // Restore text annotations
+            if (savedData.textAnnotations) {
+                savedData.textAnnotations.forEach(data => {
+                    const viewer = data.viewer === 'pdfTextViewer' ? pdfTextViewer : pdfQuestionsViewer;
+                    createTextAnnotation(
+                        data.x,
+                        data.y,
+                        data.text,
+                        viewer,
+                        data.id
+                    );
+                });
+            }
+
+            // Restore scroll position
+            setTimeout(() => {
+                if (savedData.scroll) {
+                    pdfTextViewer.scrollTop = savedData.scroll.textViewer.scrollTop;
+                    pdfTextViewer.scrollLeft = savedData.scroll.textViewer.scrollLeft;
+                    pdfQuestionsViewer.scrollTop = savedData.scroll.questionsViewer.scrollTop;
+                    pdfQuestionsViewer.scrollLeft = savedData.scroll.questionsViewer.scrollLeft;
+                }
+            }, 500);
+        }
+
+        function loadPDF(pdfData) {
+            pdfTextViewer.innerHTML = '';
+            pdfQuestionsViewer.innerHTML = '';
+            
+            if (!isAnalysisMode) {
+                const hint = document.createElement('p');
+                hint.style.padding = '10px';
+                hint.style.color = '#999';
+                hint.textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
+                pdfQuestionsViewer.appendChild(hint);
+            }
+            
+            pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    pdf.getPage(pageNum).then(page => {
+                        const viewport = page.getViewport({scale: currentScale});
+                        
+                        // Create canvas for both viewers
+                        [pdfTextViewer, pdfQuestionsViewer].forEach(viewer => {
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+                            
+                            viewer.appendChild(canvas);
+                            page.render({canvasContext: context, viewport});
+                        });
+                    });
+                }
+                
+                // Setup text annotation on questions viewer
+                pdfQuestionsViewer.addEventListener('click', function(e) {
+                    if (isTextMode && e.target.tagName === 'CANVAS') {
+                        const rect = pdfQuestionsViewer.getBoundingClientRect();
+                        const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
+                        const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
+                        
+                        createTextAnnotation(x, y, '', pdfQuestionsViewer);
+                        saveAllData();
+                    }
+                });
+                
+                // Restore data after PDF is loaded
+                setTimeout(restoreAllData, 300);
+            });
+        }
 
         function startTest() {
             if (!fileInput.files[0]) {
@@ -716,163 +1079,30 @@
                 setupHighlighting();
                 setupContextMenu();
                 setupTextDeletion();
-                restoreElementsData(); // Restore saved elements
             };
             fileReader.readAsArrayBuffer(fileInput.files[0]);
         }
 
-        function setupHighlighting() {
-            pdfTextViewer.addEventListener('mousedown', startHighlight);
-            pdfTextViewer.addEventListener('mousemove', drawHighlight);
-            pdfTextViewer.addEventListener('mouseup', endHighlight);
-            pdfTextViewer.addEventListener('mouseleave', endHighlight);
-        }
-
-        function setupContextMenu() {
-            pdfTextViewer.addEventListener('contextmenu', showContextMenu);
-            pdfQuestionsViewer.addEventListener('contextmenu', showContextMenu);
-            
-            pdfQuestionsViewer.addEventListener('contextmenu', function(e) {
-                if (e.target.classList.contains('editable-text')) {
-                    e.preventDefault();
-                    selectedItem = e.target;
-                    showContextMenu(e);
-                }
-            }, true);
-        }
-
-        function setupTextDeletion() {
-            document.addEventListener('keydown', function(e) {
-                if ((e.key === 'Delete' || e.key === 'Backspace') && selectedItem) {
-                    deleteSelectedItem();
-                }
-            });
-            
-            document.addEventListener('click', function(e) {
-                if (!e.target.classList.contains('editable-text') && !e.target.classList.contains('highlight-area')) {
-                    selectedItem = null;
-                }
-            });
-        }
-
-        function showContextMenu(e) {
-            if (e.target.classList.contains('highlight-area') || e.target.classList.contains('editable-text')) {
-                e.preventDefault();
-                selectedItem = e.target;
-                
-                contextMenu.style.display = 'block';
-                contextMenu.style.left = `${e.clientX}px`;
-                contextMenu.style.top = `${e.clientY}px`;
-            }
-        }
-
-        function deleteSelectedItem() {
-            if (selectedItem) {
-                if (selectedItem.classList.contains('highlight-area')) {
-                    highlights = highlights.filter(h => h.element !== selectedItem);
-                    elementsData.highlights = elementsData.highlights.filter(h => h.id !== selectedItem.id);
-                } else if (selectedItem.classList.contains('editable-text')) {
-                    elementsData.text = elementsData.text.filter(t => t.id !== selectedItem.id);
-                }
-                
-                selectedItem.remove();
-                selectedItem = null;
-                contextMenu.style.display = 'none';
-                saveElementsData();
-            }
-        }
-
-        function toggleHighlightMode() {
-            isHighlighting = !isHighlighting;
-            isTextMode = false;
-            highlightToolBtn.classList.toggle('active', isHighlighting);
-            textToolBtn.classList.remove('active');
-            
-            if (isHighlighting) {
-                pdfTextViewer.style.cursor = 'crosshair';
-                pdfQuestionsViewer.style.cursor = 'default';
-            } else {
-                pdfTextViewer.style.cursor = 'default';
-                pdfQuestionsViewer.style.cursor = 'default';
-            }
-        }
-
-        function toggleTextMode() {
-            isTextMode = !isTextMode;
-            isHighlighting = false;
-            textToolBtn.classList.toggle('active', isTextMode);
-            highlightToolBtn.classList.remove('active');
-            
-            if (isTextMode) {
-                pdfQuestionsViewer.style.cursor = 'text';
-                pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (режим добавления текста активен)';
-            } else {
-                pdfQuestionsViewer.style.cursor = 'default';
-                pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
-            }
-        }
-
-        function startHighlight(e) {
-            if (!isHighlighting || e.target.tagName !== 'CANVAS') return;
-            
-            const rect = e.target.getBoundingClientRect();
-            highlightStartX = e.clientX - rect.left;
-            highlightStartY = e.clientY - rect.top;
-            
-            currentHighlightArea = document.createElement('div');
-            currentHighlightArea.className = 'highlight-area';
-            currentHighlightArea.id = 'hl-' + Date.now();
-            currentHighlightArea.style.left = (highlightStartX + e.target.offsetLeft) + 'px';
-            currentHighlightArea.style.top = (highlightStartY + e.target.offsetTop) + 'px';
-            e.target.parentElement.appendChild(currentHighlightArea);
-        }
-
-        function drawHighlight(e) {
-            if (!isHighlighting || !currentHighlightArea || e.target.tagName !== 'CANVAS') return;
-            
-            const rect = e.target.getBoundingClientRect();
-            const currentX = e.clientX - rect.left;
-            const currentY = e.clientY - rect.top;
-            
-            const width = Math.abs(currentX - highlightStartX);
-            const height = Math.abs(currentY - highlightStartY);
-            const left = Math.min(highlightStartX, currentX) + e.target.offsetLeft;
-            const top = Math.min(highlightStartY, currentY) + e.target.offsetTop;
-            
-            currentHighlightArea.style.width = width + 'px';
-            currentHighlightArea.style.height = height + 'px';
-            currentHighlightArea.style.left = left + 'px';
-            currentHighlightArea.style.top = top + 'px';
-        }
-
-        function endHighlight(e) {
-            if (!isHighlighting || !currentHighlightArea) return;
-            
-            if (currentHighlightArea.offsetWidth > 5 && currentHighlightArea.offsetHeight > 5) {
-                currentHighlightArea.classList.add('highlight');
-                highlights.push({
-                    element: currentHighlightArea,
-                    container: e.target.parentElement
-                });
-                saveElementsData();
-            } else {
-                currentHighlightArea.remove();
-            }
-            
-            currentHighlightArea = null;
-        }
-
         function startTimer() {
+            clearInterval(countdown);
+            totalTime = 60 * 60;
+            updateTimerDisplay();
+            
             countdown = setInterval(() => {
                 totalTime--;
-                let minutes = String(Math.floor(totalTime / 60)).padStart(2, '0');
-                let seconds = String(totalTime % 60).padStart(2, '0');
-                timerDisplay.textContent = `${minutes}:${seconds}`;
+                updateTimerDisplay();
+                
                 if (totalTime <= 0) {
                     clearInterval(countdown);
                     endTestFunc();
                 }
             }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            let minutes = String(Math.floor(totalTime / 60)).padStart(2, '0');
+            let seconds = String(totalTime % 60).padStart(2, '0');
+            timerDisplay.textContent = `${minutes}:${seconds}`;
         }
 
         function endTestFunc() {
@@ -885,7 +1115,7 @@
             toolsToggle.style.display = "none";
             endTest.style.display = "flex";
             addTestToHistory(loadedFileName);
-            saveElementsData();
+            saveAllData();
             showUnityAd();
         }
 
@@ -897,8 +1127,7 @@
             zoomControls.style.display = "block";
             annotationTools.style.display = "block";
             toolsToggle.style.display = "flex";
-            loadPDF(currentPDFData, true);
-            restoreElementsData();
+            loadPDF(currentPDFData);
         }
 
         function finishAnalyze() {
@@ -912,167 +1141,6 @@
             showUnityAd();
         }
 
-        function saveElementsData() {
-            // Save text elements
-            elementsData.text = [];
-            document.querySelectorAll('.editable-text').forEach(el => {
-                const rect = el.getBoundingClientRect();
-                const containerRect = pdfQuestionsViewer.getBoundingClientRect();
-                
-                elementsData.text.push({
-                    id: el.id,
-                    x: rect.left - containerRect.left + pdfQuestionsViewer.scrollLeft,
-                    y: rect.top - containerRect.top + pdfQuestionsViewer.scrollTop,
-                    text: el.innerText
-                });
-            });
-            
-            // Save highlights
-            elementsData.highlights = [];
-            highlights.forEach(highlight => {
-                const rect = highlight.element.getBoundingClientRect();
-                const containerRect = highlight.container.getBoundingClientRect();
-                
-                elementsData.highlights.push({
-                    id: highlight.element.id,
-                    x: rect.left - containerRect.left + highlight.container.scrollLeft,
-                    y: rect.top - containerRect.top + highlight.container.scrollTop,
-                    width: highlight.element.style.width,
-                    height: highlight.element.style.height,
-                    containerId: highlight.container.id
-                });
-            });
-            
-            // Save scroll position
-            elementsData.scroll = {
-                textViewer: {
-                    scrollTop: pdfTextViewer.scrollTop,
-                    scrollLeft: pdfTextViewer.scrollLeft
-                },
-                questionsViewer: {
-                    scrollTop: pdfQuestionsViewer.scrollTop,
-                    scrollLeft: pdfQuestionsViewer.scrollLeft
-                }
-            };
-            
-            localStorage.setItem('elementsData', JSON.stringify(elementsData));
-        }
-
-        function restoreElementsData() {
-            const savedData = JSON.parse(localStorage.getItem('elementsData')) || elementsData;
-            
-            // Restore highlights
-            savedData.highlights.forEach(data => {
-                const highlightArea = document.createElement('div');
-                highlightArea.className = 'highlight-area highlight';
-                highlightArea.id = data.id;
-                highlightArea.style.left = data.x + 'px';
-                highlightArea.style.top = data.y + 'px';
-                highlightArea.style.width = data.width;
-                highlightArea.style.height = data.height;
-                highlightArea.style.position = 'absolute';
-                
-                const container = document.getElementById(data.containerId);
-                if (container) {
-                    container.appendChild(highlightArea);
-                    highlights.push({
-                        element: highlightArea,
-                        container: container
-                    });
-                }
-            });
-            
-            // Restore text elements
-            savedData.text.forEach(data => {
-                const editable = document.createElement('div');
-                editable.className = 'editable-text';
-                editable.contentEditable = true;
-                editable.id = data.id;
-                editable.style.left = data.x + 'px';
-                editable.style.top = data.y + 'px';
-                editable.innerText = data.text;
-                editable.style.position = 'absolute';
-                pdfQuestionsViewer.appendChild(editable);
-                
-                editable.addEventListener('input', saveElementsData);
-                editable.addEventListener('blur', saveElementsData);
-                editable.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    selectedItem = this;
-                });
-            });
-            
-            // Restore scroll position
-            setTimeout(() => {
-                if (savedData.scroll) {
-                    pdfTextViewer.scrollTop = savedData.scroll.textViewer.scrollTop;
-                    pdfTextViewer.scrollLeft = savedData.scroll.textViewer.scrollLeft;
-                    pdfQuestionsViewer.scrollTop = savedData.scroll.questionsViewer.scrollTop;
-                    pdfQuestionsViewer.scrollLeft = savedData.scroll.questionsViewer.scrollLeft;
-                }
-            }, 100);
-        }
-
-        function loadPDF(pdfData, isAnalysis = false) {
-            pdfTextViewer.innerHTML = '';
-            pdfQuestionsViewer.innerHTML = '';
-            
-            if (!isAnalysis) {
-                const hint = document.createElement('p');
-                hint.style.padding = '10px';
-                hint.style.color = '#999';
-                hint.textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
-                pdfQuestionsViewer.appendChild(hint);
-            }
-            
-            pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
-                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    pdf.getPage(pageNum).then(page => {
-                        const viewport = page.getViewport({scale: currentScale});
-                        const canvas1 = document.createElement('canvas');
-                        const canvas2 = document.createElement('canvas');
-                        const context1 = canvas1.getContext('2d');
-                        const context2 = canvas2.getContext('2d');
-                        canvas1.height = viewport.height;
-                        canvas1.width = viewport.width;
-                        canvas2.height = viewport.height;
-                        canvas2.width = viewport.width;
-
-                        pdfTextViewer.appendChild(canvas1);
-                        pdfQuestionsViewer.appendChild(canvas2);
-
-                        page.render({canvasContext: context1, viewport});
-                        page.render({canvasContext: context2, viewport});
-                    });
-                }
-            });
-            
-            pdfQuestionsViewer.addEventListener('click', function(e) {
-                if (isTextMode && e.target.tagName === 'CANVAS') {
-                    const rect = pdfQuestionsViewer.getBoundingClientRect();
-                    const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
-                    const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
-                    
-                    const editable = document.createElement('div');
-                    editable.className = 'editable-text';
-                    editable.id = 'txt-' + Date.now();
-                    editable.contentEditable = true;
-                    editable.style.left = x + 'px';
-                    editable.style.top = y + 'px';
-                    pdfQuestionsViewer.appendChild(editable);
-                    editable.focus();
-                    
-                    editable.addEventListener('input', saveElementsData);
-                    editable.addEventListener('blur', saveElementsData);
-                    
-                    editable.addEventListener('click', function(ev) {
-                        ev.stopPropagation();
-                        selectedItem = this;
-                    });
-                }
-            });
-        }
-
         function addTestToHistory(name) {
             if (!name) name = "Неизвестный тест";
             const li = document.createElement('li');
@@ -1083,18 +1151,19 @@
             localStorage.setItem('testHistory', JSON.stringify(savedHistory));
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load test history
             const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
             savedHistory.forEach(name => addTestToHistory(name));
             
-            document.addEventListener('click', () => {
+            // Hide context menu on click outside
+            document.addEventListener('click', function() {
                 contextMenu.style.display = 'none';
             });
             
-            // Show ad on load
-            setTimeout(() => {
-                showUnityAd();
-            }, 1000);
+            // Show ad after delay
+            setTimeout(showUnityAd, 1000);
         });
     </script>
 </body>
