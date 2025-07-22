@@ -13,13 +13,11 @@
             --button-bg: #1a73e8;
             --button-hover: #1558b0;
             --highlight-color: rgba(255, 255, 0, 0.5);
-            --editable-bg: rgba(255,255,255,0.6);
-            --editable-border: #1a73e8;
+            --editable-bg: rgba(255,255,255,0.2); /* Более прозрачный фон */
+            --editable-border: transparent; /* Убрана обводка */
             --zoom-controls-bg: white;
             --annotation-tools-bg: white;
             --context-menu-bg: white;
-            --scrollbar-bg: #f0f0f0;
-            --scrollbar-thumb: #c0c0c0;
         }
 
         .dark-mode {
@@ -30,13 +28,11 @@
             --button-bg: #0f3460;
             --button-hover: #16213e;
             --highlight-color: rgba(255, 215, 0, 0.5);
-            --editable-bg: rgba(30, 30, 60, 0.8);
-            --editable-border: #4cc9f0;
+            --editable-bg: rgba(30, 30, 60, 0.3); /* Более прозрачный фон для темной темы */
+            --editable-border: transparent;
             --zoom-controls-bg: #2d2d42;
             --annotation-tools-bg: #2d2d42;
             --context-menu-bg: #2d2d42;
-            --scrollbar-bg: #2d2d42;
-            --scrollbar-thumb: #4a4a6a;
         }
 
         html, body {
@@ -75,16 +71,10 @@
         }
         #pdfContainer {
             display: flex;
-            height: calc(100% - 170px);
+            height: calc(100% - 120px);
             margin: 0;
             padding: 0;
             position: relative;
-        }
-        .pdf-viewer-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
         }
         .pdf-viewer {
             flex: 1;
@@ -92,47 +82,23 @@
             overflow: auto;
             position: relative;
         }
-        .pdf-viewer::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
-            background: var(--scrollbar-bg);
-        }
-        .pdf-viewer::-webkit-scrollbar-thumb {
-            background: var(--scrollbar-thumb);
-            border-radius: 4px;
-        }
-        .horizontal-scroll-controls {
-            display: flex;
-            justify-content: center;
-            padding: 10px 0;
-            background: var(--bg-color);
-            border-top: 1px solid #ccc;
-        }
-        .scroll-btn {
-            background-color: var(--button-bg);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 15px;
-            margin: 0 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .scroll-btn:hover {
-            background-color: var(--button-hover);
-        }
         .editable-text {
             position: absolute !important;
             min-width: 50px;
             min-height: 20px;
             background-color: var(--editable-bg);
-            border: 1px dashed var(--editable-border);
+            border: 1px solid var(--editable-border); /* Убрана пунктирная обводка */
             padding: 2px 5px;
-            border-radius: 4px;
+            border-radius: 2px; /* Уменьшен радиус скругления */
             cursor: text;
             color: var(--text-color);
-            transition: background-color 0.3s, border-color 0.3s;
+            transition: background-color 0.3s;
             z-index: 10;
+            box-shadow: none; /* Убрана тень */
+            outline: none; /* Убрана обводка при фокусе */
+        }
+        .editable-text:focus {
+            background-color: rgba(255,255,255,0.4); /* Немного более видимый при фокусе */
         }
         #timer {
             position: fixed;
@@ -246,7 +212,7 @@
         }
         .zoom-controls {
             position: fixed;
-            bottom: 80px;
+            bottom: 20px;
             left: 20px;
             background-color: var(--zoom-controls-bg);
             padding: 10px;
@@ -342,150 +308,6 @@
         .delete-btn {
             color: red;
         }
-        .unity-ad-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            transform: translateY(20px);
-            opacity: 0;
-            transition: all 0.8s ease-out;
-            display: none;
-        }
-        .unity-ad {
-            background: rgba(255,255,255,0.97);
-            border-radius: 16px;
-            padding: 20px;
-            width: 240px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-            border: 1px solid rgba(0,0,0,0.08);
-            overflow: hidden;
-            position: relative;
-            transition: all 0.4s;
-        }
-        .unity-ad:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-        .unity-logo {
-            color: #1a73e8;
-            font-weight: 800;
-            font-size: 20px;
-            margin-bottom: 8px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: linear-gradient(90deg, #1a73e8, #34a853);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientShift 8s infinite alternate;
-        }
-        .unity-slogan {
-            color: #555;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 16px;
-            line-height: 1.4;
-            font-style: italic;
-        }
-        .unity-cta {
-            display: block;
-            background: linear-gradient(135deg, #1a73e8, #34a853);
-            color: white;
-            text-align: center;
-            padding: 12px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 15px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s;
-            box-shadow: 0 4px 8px rgba(26,115,232,0.2);
-        }
-        .unity-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(26,115,232,0.3);
-        }
-        .unity-cta:active {
-            transform: translateY(0);
-        }
-        .telegram-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            opacity: 0.8;
-            transition: all 0.3s;
-        }
-        .unity-cta:hover .telegram-icon {
-            transform: translateY(-50%) translateX(3px);
-            opacity: 1;
-        }
-        .pulse-effect {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 16px;
-            background: radial-gradient(circle at center, rgba(26,115,232,0.1) 0%, transparent 70%);
-            animation: pulse 4s infinite;
-            pointer-events: none;
-            opacity: 0;
-        }
-        .unity-close-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 24px;
-            height: 24px;
-            background: rgba(0,0,0,0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 10;
-            border: none;
-            color: #555;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .unity-close-btn:hover {
-            background: rgba(0,0,0,0.2);
-            transform: rotate(90deg);
-        }
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        @keyframes gradientShift {
-            0% {
-                background-position: 0% 50%;
-            }
-            100% {
-                background-position: 100% 50%;
-            }
-        }
-        @keyframes fadeOutDown {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(20px);
-                visibility: hidden;
-            }
-        }
         /* Dark mode toggle switch */
         .dark-mode-toggle {
             position: fixed;
@@ -577,21 +399,9 @@
     </div>
 
     <div id="pdfContainer" style="display:none;">
-        <div class="pdf-viewer-container">
-            <div class="pdf-viewer" id="pdfTextViewer"></div>
-            <div class="horizontal-scroll-controls">
-                <button class="scroll-btn" onclick="scrollLeft('pdfTextViewer')">←</button>
-                <button class="scroll-btn" onclick="scrollRight('pdfTextViewer')">→</button>
-            </div>
-        </div>
-        <div class="pdf-viewer-container">
-            <div class="pdf-viewer" id="pdfQuestionsViewer">
-                <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)</p>
-            </div>
-            <div class="horizontal-scroll-controls">
-                <button class="scroll-btn" onclick="scrollLeft('pdfQuestionsViewer')">←</button>
-                <button class="scroll-btn" onclick="scrollRight('pdfQuestionsViewer')">→</button>
-            </div>
+        <div class="pdf-viewer" id="pdfTextViewer"></div>
+        <div class="pdf-viewer" id="pdfQuestionsViewer">
+            <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)</p>
         </div>
     </div>
 
@@ -625,19 +435,6 @@
 
     <div class="context-menu" id="contextMenu">
         <div class="context-menu-item delete-btn" onclick="deleteSelectedItem()">Удалить</div>
-    </div>
-
-    <div class="unity-ad-container">
-        <button class="unity-close-btn" onclick="hideAd()">×</button>
-        <div class="unity-ad">
-            <div class="pulse-effect"></div>
-            <div class="unity-logo">UNITY FOR CHANGE</div>
-            <div class="unity-slogan">Together we can build a better future</div>
-            <a href="https://t.me/unityyforchange" target="_blank" class="unity-cta">
-                Click to learn more
-                <span class="telegram-icon">➤</span>
-            </a>
-        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
@@ -677,62 +474,25 @@
         let toolsVisible = true;
         let selectedItem = null;
         let isAnalysisMode = false;
-        let textElementsData = [];
-        let highlightElementsData = [];
+        let elementsData = {
+            text: [],
+            highlights: [],
+            scroll: {
+                textViewer: { scrollTop: 0, scrollLeft: 0 },
+                questionsViewer: { scrollTop: 0, scrollLeft: 0 }
+            }
+        };
 
         // Dark mode toggle
         darkModeToggle.addEventListener('change', function() {
             document.body.classList.toggle('dark-mode', this.checked);
             localStorage.setItem('darkMode', this.checked);
-            updateElementsForDarkMode();
         });
 
         // Check for saved dark mode preference
         if (localStorage.getItem('darkMode') === 'true') {
             darkModeToggle.checked = true;
             document.body.classList.add('dark-mode');
-        }
-
-        function updateElementsForDarkMode() {
-            document.querySelectorAll('.highlight-area').forEach(el => {
-                el.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--highlight-color');
-            });
-            
-            document.querySelectorAll('.editable-text').forEach(el => {
-                el.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--editable-bg');
-                el.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--editable-border');
-                el.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color');
-            });
-        }
-
-        function scrollLeft(viewerId) {
-            const viewer = document.getElementById(viewerId);
-            viewer.scrollLeft -= 50;
-        }
-
-        function scrollRight(viewerId) {
-            const viewer = document.getElementById(viewerId);
-            viewer.scrollLeft += 50;
-        }
-
-        function showUnityAd() {
-            const isStartPage = uploadSection.style.display !== "none";
-            const isEndPage = endTest.style.display === "flex";
-            
-            if (isStartPage || isEndPage) {
-                const adContainer = document.querySelector('.unity-ad-container');
-                adContainer.style.display = 'block';
-                adContainer.style.opacity = '0';
-                adContainer.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    adContainer.style.opacity = '1';
-                    adContainer.style.transform = 'translateY(0)';
-                    adContainer.style.transition = 'all 0.8s ease-out';
-                }, 100);
-            } else {
-                document.querySelector('.unity-ad-container').style.display = 'none';
-            }
         }
 
         function toggleTools() {
@@ -777,7 +537,6 @@
                 return;
             }
             
-            document.querySelector('.unity-ad-container').style.display = 'none';
             uploadSection.style.display = "none";
             pdfContainer.style.display = "flex";
             controls.style.display = "block";
@@ -803,10 +562,6 @@
             pdfTextViewer.addEventListener('mousemove', drawHighlight);
             pdfTextViewer.addEventListener('mouseup', endHighlight);
             pdfTextViewer.addEventListener('mouseleave', endHighlight);
-            pdfQuestionsViewer.addEventListener('mousedown', startHighlight);
-            pdfQuestionsViewer.addEventListener('mousemove', drawHighlight);
-            pdfQuestionsViewer.addEventListener('mouseup', endHighlight);
-            pdfQuestionsViewer.addEventListener('mouseleave', endHighlight);
         }
 
         function setupContextMenu() {
@@ -852,15 +607,15 @@
                 // Полностью удаляем элемент из DOM и из сохраненных данных
                 if (selectedItem.classList.contains('highlight-area')) {
                     highlights = highlights.filter(h => h.element !== selectedItem);
-                    highlightElementsData = highlightElementsData.filter(h => h.id !== selectedItem.id);
+                    elementsData.highlights = elementsData.highlights.filter(h => h.id !== selectedItem.id);
                 } else if (selectedItem.classList.contains('editable-text')) {
-                    textElementsData = textElementsData.filter(t => t.id !== selectedItem.id);
+                    elementsData.text = elementsData.text.filter(t => t.id !== selectedItem.id);
                 }
                 
                 selectedItem.remove();
                 selectedItem = null;
                 contextMenu.style.display = 'none';
-                saveElementsPositions();
+                saveElementsData();
             }
         }
 
@@ -872,7 +627,7 @@
             
             if (isHighlighting) {
                 pdfTextViewer.style.cursor = 'crosshair';
-                pdfQuestionsViewer.style.cursor = 'crosshair';
+                pdfQuestionsViewer.style.cursor = 'default';
             } else {
                 pdfTextViewer.style.cursor = 'default';
                 pdfQuestionsViewer.style.cursor = 'default';
@@ -936,7 +691,7 @@
                     element: currentHighlightArea,
                     container: e.target.parentElement
                 });
-                saveElementsPositions();
+                saveElementsData();
             } else {
                 currentHighlightArea.remove();
             }
@@ -967,14 +722,11 @@
             toolsToggle.style.display = "none";
             endTest.style.display = "flex";
             addTestToHistory(loadedFileName);
-            saveElementsPositions();
-            
-            showUnityAd();
+            saveElementsData();
         }
 
         function analyzeTest() {
             isAnalysisMode = true;
-            document.querySelector('.unity-ad-container').style.display = 'none';
             endTest.style.display = "none";
             pdfContainer.style.display = "flex";
             analyzeControls.style.display = "block";
@@ -982,7 +734,7 @@
             annotationTools.style.display = "block";
             toolsToggle.style.display = "flex";
             loadPDF(currentPDFData, true);
-            restoreElementsPositions();
+            restoreElementsData();
         }
 
         function finishAnalyze() {
@@ -993,80 +745,64 @@
             annotationTools.style.display = "none";
             toolsToggle.style.display = "none";
             uploadSection.style.display = "block";
-            
-            showUnityAd();
         }
 
-        function saveElementsPositions() {
+        function saveElementsData() {
             // Сохраняем текстовые элементы
-            textElementsData = [];
+            elementsData.text = [];
             document.querySelectorAll('.editable-text').forEach(el => {
                 const rect = el.getBoundingClientRect();
-                textElementsData.push({
+                const containerRect = pdfQuestionsViewer.getBoundingClientRect();
+                
+                elementsData.text.push({
                     id: el.id,
-                    left: rect.left,
-                    top: rect.top,
-                    text: el.innerText,
-                    scrollTop: pdfQuestionsViewer.scrollTop,
-                    scrollLeft: pdfQuestionsViewer.scrollLeft
+                    x: rect.left - containerRect.left + pdfQuestionsViewer.scrollLeft,
+                    y: rect.top - containerRect.top + pdfQuestionsViewer.scrollTop,
+                    text: el.innerText
                 });
             });
             
             // Сохраняем хайлайты
-            highlightElementsData = [];
+            elementsData.highlights = [];
             highlights.forEach(highlight => {
                 const rect = highlight.element.getBoundingClientRect();
-                highlightElementsData.push({
+                const containerRect = highlight.container.getBoundingClientRect();
+                
+                elementsData.highlights.push({
                     id: highlight.element.id,
-                    left: rect.left,
-                    top: rect.top,
+                    x: rect.left - containerRect.left + highlight.container.scrollLeft,
+                    y: rect.top - containerRect.top + highlight.container.scrollTop,
                     width: highlight.element.style.width,
                     height: highlight.element.style.height,
-                    containerId: highlight.container.id,
+                    containerId: highlight.container.id
+                });
+            });
+            
+            // Сохраняем позицию скролла
+            elementsData.scroll = {
+                textViewer: {
                     scrollTop: pdfTextViewer.scrollTop,
                     scrollLeft: pdfTextViewer.scrollLeft
-                });
-            });
+                },
+                questionsViewer: {
+                    scrollTop: pdfQuestionsViewer.scrollTop,
+                    scrollLeft: pdfQuestionsViewer.scrollLeft
+                }
+            };
             
-            localStorage.setItem('textElementsData', JSON.stringify(textElementsData));
-            localStorage.setItem('highlightElementsData', JSON.stringify(highlightElementsData));
+            localStorage.setItem('elementsData', JSON.stringify(elementsData));
         }
 
-        function restoreElementsPositions() {
-            // Восстанавливаем текстовые элементы
-            const savedTextData = JSON.parse(localStorage.getItem('textElementsData')) || [];
-            savedTextData.forEach(data => {
-                const editable = document.createElement('div');
-                editable.className = 'editable-text';
-                editable.contentEditable = true;
-                editable.id = data.id;
-                editable.style.left = data.left + 'px';
-                editable.style.top = data.top + 'px';
-                editable.innerText = data.text;
-                editable.style.position = 'absolute';
-                pdfQuestionsViewer.appendChild(editable);
-                
-                if (data.scrollTop) {
-                    pdfQuestionsViewer.scrollTop = data.scrollTop;
-                    pdfQuestionsViewer.scrollLeft = data.scrollLeft;
-                }
-                
-                editable.addEventListener('input', saveElementsPositions);
-                editable.addEventListener('blur', saveElementsPositions);
-                editable.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    selectedItem = this;
-                });
-            });
+        function restoreElementsData() {
+            const savedData = JSON.parse(localStorage.getItem('elementsData')) || elementsData;
             
             // Восстанавливаем хайлайты
-            const savedHighlightData = JSON.parse(localStorage.getItem('highlightElementsData')) || [];
-            savedHighlightData.forEach(data => {
+            savedData.highlights.forEach(data => {
                 const highlightArea = document.createElement('div');
                 highlightArea.className = 'highlight-area highlight';
                 highlightArea.id = data.id;
-                highlightArea.style.left = data.left + 'px';
-                highlightArea.style.top = data.top + 'px';
+                highlightArea.style.left = data.x + 'px';
+                highlightArea.style.top = data.y + 'px';
                 highlightArea.style.width = data.width;
                 highlightArea.style.height = data.height;
                 highlightArea.style.position = 'absolute';
@@ -1078,13 +814,38 @@
                         element: highlightArea,
                         container: container
                     });
-                    
-                    if (data.scrollTop) {
-                        pdfTextViewer.scrollTop = data.scrollTop;
-                        pdfTextViewer.scrollLeft = data.scrollLeft;
-                    }
                 }
             });
+            
+            // Восстанавливаем текстовые элементы
+            savedData.text.forEach(data => {
+                const editable = document.createElement('div');
+                editable.className = 'editable-text';
+                editable.contentEditable = true;
+                editable.id = data.id;
+                editable.style.left = data.x + 'px';
+                editable.style.top = data.y + 'px';
+                editable.innerText = data.text;
+                editable.style.position = 'absolute';
+                pdfQuestionsViewer.appendChild(editable);
+                
+                editable.addEventListener('input', saveElementsData);
+                editable.addEventListener('blur', saveElementsData);
+                editable.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    selectedItem = this;
+                });
+            });
+            
+            // Восстанавливаем позицию скролла
+            if (savedData.scroll) {
+                setTimeout(() => {
+                    pdfTextViewer.scrollTop = savedData.scroll.textViewer.scrollTop;
+                    pdfTextViewer.scrollLeft = savedData.scroll.textViewer.scrollLeft;
+                    pdfQuestionsViewer.scrollTop = savedData.scroll.questionsViewer.scrollTop;
+                    pdfQuestionsViewer.scrollLeft = savedData.scroll.questionsViewer.scrollLeft;
+                }, 100);
+            }
         }
 
         function loadPDF(pdfData, isAnalysis = false) {
@@ -1136,8 +897,8 @@
                     pdfQuestionsViewer.appendChild(editable);
                     editable.focus();
                     
-                    editable.addEventListener('input', saveElementsPositions);
-                    editable.addEventListener('blur', saveElementsPositions);
+                    editable.addEventListener('input', saveElementsData);
+                    editable.addEventListener('blur', saveElementsData);
                     
                     editable.addEventListener('click', function(ev) {
                         ev.stopPropagation();
@@ -1156,17 +917,6 @@
             savedHistory.push(name);
             localStorage.setItem('testHistory', JSON.stringify(savedHistory));
         }
-        
-        function hideAd() {
-            const adContainer = document.querySelector('.unity-ad-container');
-            adContainer.style.opacity = '0';
-            adContainer.style.transform = 'translateY(20px)';
-            adContainer.style.transition = 'all 0.6s ease';
-            
-            setTimeout(() => {
-                adContainer.style.display = 'none';
-            }, 600);
-        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
@@ -1175,22 +925,6 @@
             document.addEventListener('click', () => {
                 contextMenu.style.display = 'none';
             });
-            
-            const pulse = document.querySelector('.pulse-effect');
-            if(pulse) {
-                const randomDelay = Math.random() * 2;
-                pulse.style.animationDelay = `${randomDelay}s`;
-                
-                setInterval(() => {
-                    const newPulse = pulse.cloneNode(true);
-                    pulse.parentNode.appendChild(newPulse);
-                    setTimeout(() => {
-                        newPulse.remove();
-                    }, 4000);
-                }, 4000);
-            }
-            
-            showUnityAd();
         });
     </script>
 </body>
