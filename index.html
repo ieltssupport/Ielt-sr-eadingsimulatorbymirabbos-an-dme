@@ -13,8 +13,8 @@
             --button-bg: #1a73e8;
             --button-hover: #1558b0;
             --highlight-color: rgba(255, 255, 0, 0.5);
-            --editable-bg: rgba(255,255,255,0.2);
-            --editable-border: transparent;
+            --editable-bg: rgba(255,255,255,0.15);
+            --editable-border: rgba(0,0,0,0.3);
             --zoom-controls-bg: white;
             --annotation-tools-bg: white;
             --context-menu-bg: white;
@@ -28,8 +28,8 @@
             --button-bg: #0f3460;
             --button-hover: #16213e;
             --highlight-color: rgba(255, 215, 0, 0.5);
-            --editable-bg: rgba(30, 30, 60, 0.3);
-            --editable-border: transparent;
+            --editable-bg: rgba(30, 30, 60, 0.2);
+            --editable-border: rgba(255,255,255,0.3);
             --zoom-controls-bg: #2d2d42;
             --annotation-tools-bg: #2d2d42;
             --context-menu-bg: #2d2d42;
@@ -87,18 +87,20 @@
             min-width: 50px;
             min-height: 20px;
             background-color: var(--editable-bg);
-            border: 1px solid var(--editable-border);
+            border: 1px dashed var(--editable-border);
             padding: 2px 5px;
             border-radius: 2px;
             cursor: text;
             color: var(--text-color);
-            transition: background-color 0.3s;
+            transition: all 0.3s;
             z-index: 10;
-            box-shadow: none;
             outline: none;
+            backdrop-filter: blur(1px);
         }
         .editable-text:focus {
-            background-color: rgba(255,255,255,0.4);
+            background-color: rgba(255,255,255,0.3);
+            border: 1px solid var(--editable-border);
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
         }
         #timer {
             position: fixed;
@@ -795,6 +797,16 @@
             
             viewer.appendChild(editable);
             
+            // Auto-focus and select text when created
+            setTimeout(() => {
+                editable.focus();
+                const range = document.createRange();
+                range.selectNodeContents(editable);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }, 10);
+            
             const annotation = {
                 id,
                 x,
@@ -816,6 +828,9 @@
                 e.stopPropagation();
                 selectedItem = this;
             });
+            
+            // Save when losing focus
+            editable.addEventListener('blur', saveAnnotationState);
             
             return annotation;
         }
@@ -977,7 +992,6 @@
                             const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
                             
                             createTextAnnotation(x, y, '', pdfQuestionsViewer);
-                            saveAnnotationState();
                         }
                     });
                 }, 300);
