@@ -12,12 +12,14 @@
             --header-text: #fff;
             --button-bg: #1a73e8;
             --button-hover: #1558b0;
-            --highlight-color: rgba(255, 255, 0, 0.5);
-            --editable-bg: rgba(255,255,255,0.2);
-            --editable-border: transparent;
+            --highlight-color: rgba(255, 255, 0, 0.3);
+            --editable-bg: rgba(255,255,255,0.6);
+            --editable-border: #1a73e8;
             --zoom-controls-bg: white;
             --annotation-tools-bg: white;
             --context-menu-bg: white;
+            --toggle-bg: #e0e0e0;
+            --toggle-knob: white;
         }
 
         .dark-mode {
@@ -27,12 +29,14 @@
             --header-text: #fff;
             --button-bg: #0f3460;
             --button-hover: #16213e;
-            --highlight-color: rgba(255, 215, 0, 0.5);
-            --editable-bg: rgba(30, 30, 60, 0.3);
-            --editable-border: transparent;
+            --highlight-color: rgba(255, 215, 0, 0.3);
+            --editable-bg: rgba(30, 30, 60, 0.6);
+            --editable-border: #0f3460;
             --zoom-controls-bg: #2d2d42;
             --annotation-tools-bg: #2d2d42;
             --context-menu-bg: #2d2d42;
+            --toggle-bg: #4d4d4d;
+            --toggle-knob: #f5f5f5;
         }
 
         html, body {
@@ -42,7 +46,6 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
-            overflow: hidden;
         }
         header {
             background-color: var(--header-bg);
@@ -74,12 +77,11 @@
             height: calc(100% - 120px);
             margin: 0;
             padding: 0;
-            position: relative;
         }
         .pdf-viewer {
             flex: 1;
             border: 1px solid #ccc;
-            overflow: auto;
+            overflow-y: scroll;
             position: relative;
         }
         .editable-text {
@@ -87,18 +89,12 @@
             min-width: 50px;
             min-height: 20px;
             background-color: var(--editable-bg);
-            border: 1px solid var(--editable-border);
+            border: 1px dashed var(--editable-border);
             padding: 2px 5px;
-            border-radius: 2px;
+            border-radius: 4px;
             cursor: text;
             color: var(--text-color);
-            transition: background-color 0.3s;
-            z-index: 10;
-            box-shadow: none;
-            outline: none;
-        }
-        .editable-text:focus {
-            background-color: rgba(255,255,255,0.4);
+            transition: all 0.3s;
         }
         #timer {
             position: fixed;
@@ -259,7 +255,7 @@
             transition: all 0.2s;
         }
         .annotation-btn:hover {
-            background: #e0e0f0;
+            background: #e0e0e0;
         }
         .annotation-btn.active {
             background: var(--button-bg);
@@ -307,64 +303,6 @@
         }
         .delete-btn {
             color: red;
-        }
-        .dark-mode-toggle {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-        }
-        .toggle-label {
-            margin-right: 10px;
-            font-weight: bold;
-            color: var(--text-color);
-        }
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-        .slider.round {
-            border-radius: 34px;
-        }
-        .slider.round:before {
-            border-radius: 50%;
         }
         .unity-ad-container {
             position: fixed;
@@ -481,6 +419,16 @@
             background: rgba(0,0,0,0.2);
             transform: rotate(90deg);
         }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         @keyframes gradientShift {
             0% {
                 background-position: 0% 50%;
@@ -489,11 +437,82 @@
                 background-position: 100% 50%;
             }
         }
+        @keyframes fadeOutDown {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+                visibility: hidden;
+            }
+        }
+        
+        /* Dark Mode Toggle Switch - iPhone Style */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toggle-label {
+            font-weight: bold;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 30px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--toggle-bg);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 2px;
+            bottom: 2px;
+            background-color: var(--toggle-knob);
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider {
+            background-color: #34c759;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        .slider.round {
+            border-radius: 34px;
+        }
+        .slider.round:before {
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
-    <header>IELTS Reading Simulator</header>
-
     <div class="dark-mode-toggle">
         <span class="toggle-label">Dark Mode</span>
         <label class="toggle-switch">
@@ -501,6 +520,8 @@
             <span class="slider round"></span>
         </label>
     </div>
+
+    <header>IELTS Reading Simulator</header>
 
     <div id="uploadSection">
         <input type="file" id="fileInput" accept="application/pdf">
@@ -573,7 +594,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
     <script>
-        // Core variables
         const fileInput = document.getElementById('fileInput');
         const pdfTextViewer = document.getElementById('pdfTextViewer');
         const pdfQuestionsViewer = document.getElementById('pdfQuestionsViewer');
@@ -591,9 +611,7 @@
         const textToolBtn = document.getElementById('textToolBtn');
         const contextMenu = document.getElementById('contextMenu');
         const darkModeToggle = document.getElementById('darkModeToggle');
-        const unityAdContainer = document.querySelector('.unity-ad-container');
         
-        // State variables
         let countdown;
         let totalTime = 60 * 60;
         let loadedFileName = "";
@@ -943,7 +961,9 @@
                         scrollTop: pdfQuestionsViewer.scrollTop,
                         scrollLeft: pdfQuestionsViewer.scrollLeft
                     }
-                }
+                },
+                pdfData: currentPDFData ? Array.from(new Uint8Array(currentPDFData)) : null,
+                fileName: loadedFileName
             };
             
             localStorage.setItem('ieltsReadingData', JSON.stringify(data));
@@ -952,6 +972,12 @@
         function restoreAllData() {
             const savedData = JSON.parse(localStorage.getItem('ieltsReadingData'));
             if (!savedData) return;
+
+            // Restore PDF data if available
+            if (savedData.pdfData && !currentPDFData) {
+                currentPDFData = new Uint8Array(savedData.pdfData).buffer;
+                loadedFileName = savedData.fileName || "";
+            }
 
             // Restore scale
             currentScale = savedData.scale || 1.0;
@@ -1062,6 +1088,7 @@
                 return;
             }
             
+            loadedFileName = fileInput.files[0].name;
             uploadSection.style.display = "none";
             pdfContainer.style.display = "flex";
             controls.style.display = "block";
@@ -1168,7 +1195,6 @@
     </script>
 </body>
 </html>
-
 
 
 
