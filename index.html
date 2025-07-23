@@ -84,6 +84,11 @@
             overflow-y: scroll;
             position: relative;
         }
+        .pdf-viewer canvas {
+            margin: 10px auto;
+            display: block;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
         .editable-text {
             position: absolute !important;
             min-width: 50px;
@@ -592,8 +597,12 @@
         </div>
     </div>
 
+    <!-- PDF.js worker script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
     <script>
+        // Set PDF.js worker path
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
+
         const fileInput = document.getElementById('fileInput');
         const pdfTextViewer = document.getElementById('pdfTextViewer');
         const pdfQuestionsViewer = document.getElementById('pdfQuestionsViewer');
@@ -1048,37 +1057,70 @@
             }
             
             pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
-                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const renderPages = (pageNum) => {
+                    if (pageNum > pdf.numPages) {
+                        // All pages rendered, restore data
+                        setTimeout(restoreAllData, 300);
+                        return;
+                    }
+                    
                     pdf.getPage(pageNum).then(page => {
                         const viewport = page.getViewport({scale: currentScale});
                         
-                        // Create canvas for both viewers
-                        [pdfTextViewer, pdfQuestionsViewer].forEach(viewer => {
-                            const canvas = document.createElement('canvas');
-                            const context = canvas.getContext('2d');
-                            canvas.height = viewport.height;
-                            canvas.width = viewport.width;
-                            
-                            viewer.appendChild(canvas);
-                            page.render({canvasContext: context, viewport});
-                        });
-                    });
-                }
-                
-                // Setup text annotation on questions viewer
-                pdfQuestionsViewer.addEventListener('click', function(e) {
-                    if (isTextMode && e.target.tagName === 'CANVAS') {
-                        const rect = pdfQuestionsViewer.getBoundingClientRect();
-                        const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
-                        const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
+                        // Create canvas for text viewer
+                        const canvas1 = document.createElement('canvas');
+                        const context1 = canvas1.getContext('2d');
+                        canvas1.height = viewport.height;
+                        canvas1.width = viewport.width;
+                        pdfTextViewer.appendChild(canvas1);
                         
-                        createTextAnnotation(x, y, '', pdfQuestionsViewer);
-                        saveAllData();
-                    }
-                });
+                        // Create canvas for questions viewer
+                        const canvas2 = document.createElement('canvas');
+                        const context2 = canvas2.getContext('2d');
+                        canvas2.height = viewport.height;
+                        canvas2.width = viewport.width;
+                        pdfQuestionsViewer.appendChild(canvas2);
+                        
+                        // Render both canvases
+                        const renderContext1 = {
+                            canvasContext: context1,
+                            viewport: viewport
+                        };
+                        
+                        const renderContext2 = {
+                            canvasContext: context2,
+                            viewport: viewport
+                        };
+                        
+                        page.render(renderContext1).then(() => {
+                            page.render(renderContext2).then(() => {
+                                // Render next page
+                                renderPages(pageNum + 1);
+                            });
+                        });
+                    }).catch(error => {
+                        console.error('Error rendering page', error);
+                    });
+                };
                 
-                // Restore data after PDF is loaded
-                setTimeout(restoreAllData, 300);
+                // Start rendering from first page
+                renderPages(1);
+                
+            }).catch(error => {
+                console.error('Error loading PDF', error);
+                alert('Error loading PDF. Please try another file.');
+            });
+            
+            // Setup text annotation on questions viewer
+            pdfQuestionsViewer.addEventListener('click', function(e) {
+                if (isTextMode && e.target.tagName === 'CANVAS') {
+                    const rect = pdfQuestionsViewer.getBoundingClientRect();
+                    const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
+                    const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
+                    
+                    createTextAnnotation(x, y, '', pdfQuestionsViewer);
+                    saveAllData();
+                }
             });
         }
 
@@ -1195,7 +1237,6 @@
     </script>
 </body>
 </html>
-
 
 
 
