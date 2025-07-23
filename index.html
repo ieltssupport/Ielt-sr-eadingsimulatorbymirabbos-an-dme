@@ -1234,6 +1234,132 @@
             // Show ad after delay
             setTimeout(showUnityAd, 1000);
         });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Simulator</title>
+    <style>
+        /* (Keep all your existing CSS styles here) */
+        /* I've kept them the same to maintain your design */
+    </style>
+</head>
+<body>
+    <!-- (Keep all your existing HTML structure here) -->
+    <!-- I've kept it the same to maintain your layout -->
+
+    <!-- Updated PDF.js scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        // Set the worker path
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+        // (Keep all your existing JavaScript variables here)
+
+        // Fixed PDF loading function
+        function loadPDF(pdfData) {
+            // Clear previous content
+            pdfTextViewer.innerHTML = '';
+            pdfQuestionsViewer.innerHTML = '';
+
+            // Add hint text if not in analysis mode
+            if (!isAnalysisMode) {
+                const hint = document.createElement('p');
+                hint.style.padding = '10px';
+                hint.style.color = '#999';
+                hint.textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
+                pdfQuestionsViewer.appendChild(hint);
+            }
+
+            // Load the PDF document
+            pdfjsLib.getDocument({data: pdfData}).promise.then(function(pdf) {
+                // Render each page
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    pdf.getPage(i).then(function(page) {
+                        // Set scale and viewport
+                        const scale = currentScale;
+                        const viewport = page.getViewport({scale: scale});
+
+                        // Create canvas for text viewer
+                        const canvas1 = document.createElement('canvas');
+                        const context1 = canvas1.getContext('2d');
+                        canvas1.height = viewport.height;
+                        canvas1.width = viewport.width;
+                        pdfTextViewer.appendChild(canvas1);
+
+                        // Create canvas for questions viewer
+                        const canvas2 = document.createElement('canvas');
+                        const context2 = canvas2.getContext('2d');
+                        canvas2.height = viewport.height;
+                        canvas2.width = viewport.width;
+                        pdfQuestionsViewer.appendChild(canvas2);
+
+                        // Render the page on both canvases
+                        page.render({
+                            canvasContext: context1,
+                            viewport: viewport
+                        });
+
+                        page.render({
+                            canvasContext: context2,
+                            viewport: viewport
+                        });
+                    });
+                }
+
+                // Restore any saved annotations
+                setTimeout(restoreAllData, 500);
+            }).catch(function(error) {
+                console.error('PDF loading error:', error);
+                alert('Error loading PDF. Please try another file.');
+            });
+
+            // Set up text annotation click handler
+            pdfQuestionsViewer.addEventListener('click', function(e) {
+                if (isTextMode && e.target.tagName === 'CANVAS') {
+                    const rect = pdfQuestionsViewer.getBoundingClientRect();
+                    const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
+                    const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
+                    
+                    createTextAnnotation(x, y, '', pdfQuestionsViewer);
+                    saveAllData();
+                }
+            });
+        }
+
+        // (Keep all your other existing JavaScript functions here)
+        // They can remain exactly the same
+
+        function startTest() {
+            if (!fileInput.files[0]) {
+                alert("Пожалуйста, сначала выберите PDF.");
+                return;
+            }
+            
+            loadedFileName = fileInput.files[0].name;
+            uploadSection.style.display = "none";
+            pdfContainer.style.display = "flex";
+            controls.style.display = "block";
+            timerDisplay.style.display = "block";
+            zoomControls.style.display = "block";
+            annotationTools.style.display = "block";
+            toolsToggle.style.display = "flex";
+            startTimer();
+            showUnityAd();
+            
+            const fileReader = new FileReader();
+            fileReader.onload = function() {
+                currentPDFData = this.result;
+                loadPDF(currentPDFData);
+                setupHighlighting();
+                setupContextMenu();
+                setupTextDeletion();
+            };
+            fileReader.readAsArrayBuffer(fileInput.files[0]);
+        }
+
+        // (Rest of your existing JavaScript code)
     </script>
 </body>
 </html>
