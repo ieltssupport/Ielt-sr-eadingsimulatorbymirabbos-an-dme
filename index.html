@@ -71,10 +71,6 @@
             background-color: #1e1e1e;
             border-color: #444;
         }
-        .pdf-container-wrapper {
-            position: relative;
-            transform-origin: 0 0;
-        }
         #timer {
             position: fixed;
             top: 15px;
@@ -569,15 +565,13 @@
             padding: 0;
             margin: 0;
             font-family: Arial, sans-serif;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 1.4;
             outline: none;
             resize: none;
             overflow: hidden;
             cursor: text;
             z-index: 10;
-            min-height: 28px;
-            width: 250px;
         }
         body.dark-mode .text-annotation {
             color: white;
@@ -603,17 +597,17 @@
         <input type="file" id="fileInput" accept="application/pdf">
         <p class="welcome">Добро пожаловать на IELTS Reading Simulator</p>
         <p class="instruction">Загрузите ваш IELTS Reading PDF, чтобы начать</p>
-        <button id="startBtn">Старт</button>
+        <button id="startBtn" onclick="startTest()">Старт</button>
     </div>
 
     <div id="timer" style="display:none;">60:00</div>
 
     <div id="controls" style="display:none;">
-        <button id="endTestBtn">Завершить тест</button>
+        <button id="endTestBtn" onclick="endTestFunc()">Завершить тест</button>
     </div>
 
     <div id="analyzeControls">
-        <button id="finishAnalyzeBtn">Завершить анализ</button>
+        <button id="finishAnalyzeBtn" onclick="finishAnalyze()">Завершить анализ</button>
     </div>
 
     <div id="pdfContainer" style="display:none;">
@@ -630,8 +624,8 @@
         </div>
         <div id="newTest">
             <h2>✅ Тест завершён!</h2>
-            <button class="result-btn">Начать новый тест</button>
-            <button class="result-btn">Анализировать</button>
+            <button class="result-btn" onclick="location.reload()">Начать новый тест</button>
+            <button class="result-btn" onclick="analyzeTest()">Анализировать</button>
         </div>
     </div>
 
@@ -639,23 +633,23 @@
     <footer>&copy; 2025 IELTS Reading Simulator</footer>
 
     <div class="zoom-controls" id="zoomControls">
-        <button class="zoom-btn">-</button>
+        <button class="zoom-btn" onclick="zoomOut()">-</button>
         <span class="zoom-value">100%</span>
-        <button class="zoom-btn">+</button>
+        <button class="zoom-btn" onclick="zoomIn()">+</button>
     </div>
 
-    <button class="tools-toggle" id="toolsToggle">+</button>
+    <button class="tools-toggle" id="toolsToggle" onclick="toggleTools()">+</button>
 
     <div class="annotation-tools" id="annotationTools">
-        <button class="annotation-btn" id="highlightToolBtn">Хайлайт</button>
+        <button class="annotation-btn" id="highlightToolBtn" onclick="toggleHighlightMode()">Хайлайт</button>
     </div>
 
     <div class="context-menu" id="contextMenu">
-        <div class="context-menu-item delete-btn">Удалить</div>
+        <div class="context-menu-item delete-btn" onclick="deleteSelectedItem()">Удалить</div>
     </div>
 
     <div class="unity-ad-container">
-        <button class="unity-close-btn">×</button>
+        <button class="unity-close-btn" onclick="hideAd()">×</button>
         <div class="unity-ad">
             <div class="pulse-effect"></div>
             <div class="unity-logo">UNITY FOR CHANGE</div>
@@ -669,7 +663,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
     <script>
-        // Initialize all elements
         const fileInput = document.getElementById('fileInput');
         const pdfTextViewer = document.getElementById('pdfTextViewer');
         const pdfQuestionsViewer = document.getElementById('pdfQuestionsViewer');
@@ -686,15 +679,7 @@
         const highlightToolBtn = document.getElementById('highlightToolBtn');
         const contextMenu = document.getElementById('contextMenu');
         const darkModeToggle = document.getElementById('darkModeToggle');
-        const startBtn = document.getElementById('startBtn');
-        const endTestBtn = document.getElementById('endTestBtn');
-        const finishAnalyzeBtn = document.getElementById('finishAnalyzeBtn');
-        const resultBtns = document.querySelectorAll('.result-btn');
-        const zoomBtns = document.querySelectorAll('.zoom-btn');
-        const unityCloseBtn = document.querySelector('.unity-close-btn');
-        const deleteBtn = document.querySelector('.delete-btn');
         
-        // State variables
         let countdown;
         let totalTime = 60 * 60;
         let loadedFileName = "";
@@ -705,7 +690,6 @@
         let currentHighlightArea = null;
         let highlights = [];
         let currentScale = 1.0;
-        let pdfScale = 1.0;
         const scaleStep = 0.1;
         const minScale = 0.5;
         const maxScale = 3.0;
@@ -713,99 +697,47 @@
         let selectedItem = null;
         let scrollPositions = { text: 0, questions: 0 };
 
-        // Initialize the application
-        function init() {
-            // Set up event listeners
-            setupEventListeners();
-            
-            // Check for saved dark mode preference
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.body.classList.add('dark-mode');
-                darkModeToggle.checked = true;
-            }
-            
-            // Load test history
-            loadTestHistory();
-            
-            // Show ad on start page
-            showUnityAd();
-        }
-
-        function setupEventListeners() {
-            // Main buttons
-            startBtn.addEventListener('click', startTest);
-            endTestBtn.addEventListener('click', endTestFunc);
-            finishAnalyzeBtn.addEventListener('click', finishAnalyze);
-            
-            // Result buttons
-            resultBtns[0].addEventListener('click', () => location.reload());
-            resultBtns[1].addEventListener('click', analyzeTest);
-            
-            // Zoom buttons
-            zoomBtns[0].addEventListener('click', zoomOut);
-            zoomBtns[1].addEventListener('click', zoomIn);
-            
-            // Tools buttons
-            toolsToggle.addEventListener('click', toggleTools);
-            highlightToolBtn.addEventListener('click', toggleHighlightMode);
-            
-            // Other controls
-            darkModeToggle.addEventListener('change', toggleDarkMode);
-            fileInput.addEventListener('change', handleFileSelect);
-            unityCloseBtn.addEventListener('click', hideAd);
-            deleteBtn.addEventListener('click', deleteSelectedItem);
-        }
-
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (file && file.type === "application/pdf") {
-                loadedFileName = file.name;
-            } else {
-                alert("Пожалуйста, загрузите PDF файл.");
-            }
-        }
-
-        function loadTestHistory() {
-            const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
-            testHistory.innerHTML = '';
-            savedHistory.forEach(name => {
-                const li = document.createElement('li');
-                li.textContent = name;
-                testHistory.appendChild(li);
-            });
-        }
-
-        // [All other functions remain exactly the same as in the original]
         // Dark mode functionality
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
         }
 
+        // Check for saved dark mode preference
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.checked = true;
+        }
+
+        // Add event listener to toggle
+        darkModeToggle.addEventListener('change', toggleDarkMode);
+
         function createTextAnnotation(x, y, container) {
             const textAnnotation = document.createElement('textarea');
             textAnnotation.className = 'text-annotation';
-            textAnnotation.style.left = (x / pdfScale) + 'px';
-            textAnnotation.style.top = (y / pdfScale) + 'px';
-            textAnnotation.style.width = (250 / pdfScale) + 'px';
-            textAnnotation.style.minHeight = (28 / pdfScale) + 'px';
+            textAnnotation.style.left = x + 'px';
+            textAnnotation.style.top = y + 'px';
+            textAnnotation.style.width = '200px';
+            textAnnotation.style.height = '24px';
             
             container.appendChild(textAnnotation);
             textAnnotation.focus();
-
+            
+            // Auto-resize
             textAnnotation.addEventListener('input', function() {
                 this.style.height = 'auto';
                 this.style.height = (this.scrollHeight) + 'px';
                 saveAnnotations();
             });
-
+            
             textAnnotation.addEventListener('blur', function() {
                 if (this.value.trim() === '') {
                     this.remove();
                 }
                 saveAnnotations();
             });
-
+            
+            // Save on any change
             textAnnotation.addEventListener('keyup', saveAnnotations);
             
             return textAnnotation;
@@ -825,9 +757,9 @@
                     width: el.style.width,
                     height: el.style.height,
                     text: el.value,
-                    containerId: el.parentElement.parentElement.id,
-                    scrollTop: el.parentElement.parentElement.scrollTop,
-                    scrollLeft: el.parentElement.parentElement.scrollLeft
+                    containerId: el.parentElement.id,
+                    scrollTop: el.parentElement.scrollTop,
+                    scrollLeft: el.parentElement.scrollLeft
                 });
             });
             
@@ -838,9 +770,9 @@
                     top: highlight.element.style.top,
                     width: highlight.element.style.width,
                     height: highlight.element.style.height,
-                    containerId: highlight.container.parentElement.id,
-                    scrollTop: highlight.container.parentElement.scrollTop,
-                    scrollLeft: highlight.container.parentElement.scrollLeft
+                    containerId: highlight.container.id,
+                    scrollTop: highlight.container.scrollTop,
+                    scrollLeft: highlight.container.scrollLeft
                 });
             });
             
@@ -854,48 +786,42 @@
             saved.texts.forEach(text => {
                 const container = document.getElementById(text.containerId);
                 if (container) {
-                    const wrapper = container.querySelector('.pdf-container-wrapper');
-                    if (wrapper) {
-                        const annotation = createTextAnnotation(
-                            parseFloat(text.left) * pdfScale,
-                            parseFloat(text.top) * pdfScale,
-                            wrapper
-                        );
-                        annotation.value = text.text;
-                        annotation.style.width = text.width;
-                        annotation.style.height = text.height;
-                        
-                        if (text.scrollTop) {
-                            container.scrollTop = text.scrollTop;
-                            container.scrollLeft = text.scrollLeft;
-                        }
+                    const annotation = createTextAnnotation(
+                        parseInt(text.left),
+                        parseInt(text.top),
+                        container
+                    );
+                    annotation.value = text.text;
+                    annotation.style.width = text.width;
+                    annotation.style.height = text.height;
+                    
+                    if (text.scrollTop) {
+                        container.scrollTop = text.scrollTop;
+                        container.scrollLeft = text.scrollLeft;
                     }
                 }
             });
             
             // Restore highlights
             saved.highlights.forEach(hl => {
+                const highlightArea = document.createElement('div');
+                highlightArea.className = 'highlight-area';
+                highlightArea.style.left = hl.left;
+                highlightArea.style.top = hl.top;
+                highlightArea.style.width = hl.width;
+                highlightArea.style.height = hl.height;
+                
                 const container = document.getElementById(hl.containerId);
                 if (container) {
-                    const wrapper = container.querySelector('.pdf-container-wrapper');
-                    if (wrapper) {
-                        const highlightArea = document.createElement('div');
-                        highlightArea.className = 'highlight-area';
-                        highlightArea.style.left = hl.left;
-                        highlightArea.style.top = hl.top;
-                        highlightArea.style.width = hl.width;
-                        highlightArea.style.height = hl.height;
-                        
-                        wrapper.appendChild(highlightArea);
-                        highlights.push({
-                            element: highlightArea,
-                            container: wrapper
-                        });
-                        
-                        if (hl.scrollTop) {
-                            container.scrollTop = hl.scrollTop;
-                            container.scrollLeft = hl.scrollLeft;
-                        }
+                    container.appendChild(highlightArea);
+                    highlights.push({
+                        element: highlightArea,
+                        container: container
+                    });
+                    
+                    if (hl.scrollTop) {
+                        container.scrollTop = hl.scrollTop;
+                        container.scrollLeft = hl.scrollLeft;
                     }
                 }
             });
@@ -942,23 +868,20 @@
         }
 
         function updateZoom() {
-            pdfScale = currentScale;
             document.querySelector('.zoom-value').textContent = `${Math.round(currentScale * 100)}%`;
-            
             if (currentPDFData) {
-                // Save current scroll positions
-                const textScroll = pdfTextViewer.scrollTop;
-                const questionsScroll = pdfQuestionsViewer.scrollTop;
-                
                 loadPDF(currentPDFData);
-                
-                // Restore scroll positions after zoom
-                setTimeout(() => {
-                    pdfTextViewer.scrollTop = textScroll * currentScale;
-                    pdfQuestionsViewer.scrollTop = questionsScroll * currentScale;
-                }, 100);
             }
         }
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type === "application/pdf") {
+                loadedFileName = file.name;
+            } else {
+                alert("Пожалуйста, загрузите PDF файл.");
+            }
+        });
 
         function startTest() {
             if (!fileInput.files[0]) {
@@ -987,17 +910,14 @@
         }
 
         function setupHighlighting() {
-            const textWrapper = pdfTextViewer.querySelector('.pdf-container-wrapper');
-            const questionsWrapper = pdfQuestionsViewer.querySelector('.pdf-container-wrapper');
-            
-            textWrapper.addEventListener('mousedown', startHighlight);
-            textWrapper.addEventListener('mousemove', drawHighlight);
-            textWrapper.addEventListener('mouseup', endHighlight);
-            textWrapper.addEventListener('mouseleave', endHighlight);
-            questionsWrapper.addEventListener('mousedown', startHighlight);
-            questionsWrapper.addEventListener('mousemove', drawHighlight);
-            questionsWrapper.addEventListener('mouseup', endHighlight);
-            questionsWrapper.addEventListener('mouseleave', endHighlight);
+            pdfTextViewer.addEventListener('mousedown', startHighlight);
+            pdfTextViewer.addEventListener('mousemove', drawHighlight);
+            pdfTextViewer.addEventListener('mouseup', endHighlight);
+            pdfTextViewer.addEventListener('mouseleave', endHighlight);
+            pdfQuestionsViewer.addEventListener('mousedown', startHighlight);
+            pdfQuestionsViewer.addEventListener('mousemove', drawHighlight);
+            pdfQuestionsViewer.addEventListener('mouseup', endHighlight);
+            pdfQuestionsViewer.addEventListener('mouseleave', endHighlight);
         }
 
         function setupContextMenu() {
@@ -1044,13 +964,13 @@
             if (!isHighlighting || e.target.tagName !== 'CANVAS') return;
             
             const rect = e.target.getBoundingClientRect();
-            highlightStartX = (e.clientX - rect.left + e.target.parentElement.parentElement.scrollLeft) / pdfScale;
-            highlightStartY = (e.clientY - rect.top + e.target.parentElement.parentElement.scrollTop) / pdfScale;
+            highlightStartX = e.clientX - rect.left;
+            highlightStartY = e.clientY - rect.top;
             
             currentHighlightArea = document.createElement('div');
             currentHighlightArea.className = 'highlight-area';
-            currentHighlightArea.style.left = highlightStartX + 'px';
-            currentHighlightArea.style.top = highlightStartY + 'px';
+            currentHighlightArea.style.left = (highlightStartX + e.target.offsetLeft) + 'px';
+            currentHighlightArea.style.top = (highlightStartY + e.target.offsetTop) + 'px';
             e.target.parentElement.appendChild(currentHighlightArea);
         }
 
@@ -1058,13 +978,13 @@
             if (!isHighlighting || !currentHighlightArea || e.target.tagName !== 'CANVAS') return;
             
             const rect = e.target.getBoundingClientRect();
-            const currentX = (e.clientX - rect.left + e.target.parentElement.parentElement.scrollLeft) / pdfScale;
-            const currentY = (e.clientY - rect.top + e.target.parentElement.parentElement.scrollTop) / pdfScale;
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
             
             const width = Math.abs(currentX - highlightStartX);
             const height = Math.abs(currentY - highlightStartY);
-            const left = Math.min(highlightStartX, currentX);
-            const top = Math.min(highlightStartY, currentY);
+            const left = Math.min(highlightStartX, currentX) + e.target.offsetLeft;
+            const top = Math.min(highlightStartY, currentY) + e.target.offsetTop;
             
             currentHighlightArea.style.width = width + 'px';
             currentHighlightArea.style.height = height + 'px';
@@ -1150,72 +1070,57 @@
         }
 
         function loadPDF(pdfData, isAnalysis = false) {
-            // Clear previous content but preserve wrappers
-            const textWrapper = pdfTextViewer.querySelector('.pdf-container-wrapper') || document.createElement('div');
-            const questionsWrapper = pdfQuestionsViewer.querySelector('.pdf-container-wrapper') || document.createElement('div');
-            
-            textWrapper.className = 'pdf-container-wrapper';
-            questionsWrapper.className = 'pdf-container-wrapper';
-            
-            textWrapper.innerHTML = '';
-            questionsWrapper.innerHTML = '';
-            
             pdfTextViewer.innerHTML = '';
             pdfQuestionsViewer.innerHTML = '';
             
-            pdfTextViewer.appendChild(textWrapper);
-            pdfQuestionsViewer.appendChild(questionsWrapper);
-
             if (!isAnalysis) {
                 const hint = document.createElement('p');
                 hint.style.padding = '10px';
                 hint.style.color = '#999';
                 hint.textContent = '📝 Кликните на любое место, чтобы добавить заметку';
-                questionsWrapper.appendChild(hint);
+                pdfQuestionsViewer.appendChild(hint);
             }
-
+            
             pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                     pdf.getPage(pageNum).then(page => {
-                        const viewport = page.getViewport({scale: currentScale * pdfScale});
-                        
+                        const viewport = page.getViewport({scale: currentScale});
                         const canvas1 = document.createElement('canvas');
                         const canvas2 = document.createElement('canvas');
                         const context1 = canvas1.getContext('2d');
                         const context2 = canvas2.getContext('2d');
-                        
                         canvas1.height = viewport.height;
                         canvas1.width = viewport.width;
                         canvas2.height = viewport.height;
                         canvas2.width = viewport.width;
 
-                        textWrapper.appendChild(canvas1);
-                        questionsWrapper.appendChild(canvas2);
+                        pdfTextViewer.appendChild(canvas1);
+                        pdfQuestionsViewer.appendChild(canvas2);
 
                         page.render({canvasContext: context1, viewport});
                         page.render({canvasContext: context2, viewport});
                     });
                 }
             });
-
-            // Setup click handlers for annotations
-            textWrapper.addEventListener('click', function(e) {
+            
+            // Add text annotation on click
+            pdfTextViewer.addEventListener('click', function(e) {
                 if (e.target.tagName === 'CANVAS') {
-                    const rect = e.target.getBoundingClientRect();
-                    const x = (e.clientX - rect.left + pdfTextViewer.scrollLeft) / pdfScale;
-                    const y = (e.clientY - rect.top + pdfTextViewer.scrollTop) / pdfScale;
+                    const rect = pdfTextViewer.getBoundingClientRect();
+                    const x = e.clientX - rect.left + pdfTextViewer.scrollLeft;
+                    const y = e.clientY - rect.top + pdfTextViewer.scrollTop;
                     
-                    createTextAnnotation(x, y, textWrapper);
+                    createTextAnnotation(x, y, pdfTextViewer);
                 }
             });
             
-            questionsWrapper.addEventListener('click', function(e) {
+            pdfQuestionsViewer.addEventListener('click', function(e) {
                 if (e.target.tagName === 'CANVAS') {
-                    const rect = e.target.getBoundingClientRect();
-                    const x = (e.clientX - rect.left + pdfQuestionsViewer.scrollLeft) / pdfScale;
-                    const y = (e.clientY - rect.top + pdfQuestionsViewer.scrollTop) / pdfScale;
+                    const rect = pdfQuestionsViewer.getBoundingClientRect();
+                    const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
+                    const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
                     
-                    createTextAnnotation(x, y, questionsWrapper);
+                    createTextAnnotation(x, y, pdfQuestionsViewer);
                 }
             });
             
@@ -1245,319 +1150,18 @@
             }, 600);
         }
 
-        // Initialize the application when DOM is loaded
-        document.addEventListener('DOMContentLoaded', init);
-
-// Добавляем в начало скрипта (после объявления переменных)
-let textSizeMultiplier = 1.0;
-const textSizeStep = 0.1;
-
-// Добавляем в функцию updateZoom() перед loadPDF(currentPDFData)
-function updateTextSize() {
-    const textElements = document.querySelectorAll('.text-annotation');
-    textElements.forEach(el => {
-        const baseSize = 14; // Базовый размер шрифта
-        el.style.fontSize = `${baseSize * textSizeMultiplier}px`;
-    });
-}
-
-// Добавляем новые функции для управления размером текста
-function increaseTextSize() {
-    if (textSizeMultiplier < 2.0) {
-        textSizeMultiplier += textSizeStep;
-        updateTextSize();
-        saveAnnotations();
-    }
-}
-
-function decreaseTextSize() {
-    if (textSizeMultiplier > 0.5) {
-        textSizeMultiplier -= textSizeStep;
-        updateTextSize();
-        saveAnnotations();
-    }
-}
-
-// Модифицируем функцию createTextAnnotation()
-function createTextAnnotation(x, y, container) {
-    const textAnnotation = document.createElement('textarea');
-    textAnnotation.className = 'text-annotation';
-    textAnnotation.style.left = x + 'px';
-    textAnnotation.style.top = y + 'px';
-    textAnnotation.style.width = (200 * textSizeMultiplier) + 'px';
-    textAnnotation.style.height = (24 * textSizeMultiplier) + 'px';
-    textAnnotation.style.fontSize = `${14 * textSizeMultiplier}px`;
-    
-    container.appendChild(textAnnotation);
-    textAnnotation.focus();
-    
-    // Auto-resize
-    textAnnotation.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-        saveAnnotations();
-    });
-    
-    // ... остальной код функции без изменений
-}
-
-// Модифицируем функцию restoreAnnotations()
-function restoreAnnotations() {
-    const saved = JSON.parse(localStorage.getItem('annotations')) || {texts: [], highlights: []};
-    
-    // Восстанавливаем множитель размера текста
-    if (saved.textSizeMultiplier) {
-        textSizeMultiplier = saved.textSizeMultiplier;
-    }
-    
-    // ... остальной код функции
-}
-
-// Модифицируем функцию saveAnnotations()
-function saveAnnotations() {
-    const annotations = {
-        texts: [],
-        highlights: [],
-        textSizeMultiplier: textSizeMultiplier
-    };
-    
-    // ... остальной код функции
-}
-
-// Добавляем кнопки управления размером текста в zoomControls
-zoomControls.innerHTML += `
-    <button class="zoom-btn" onclick="decreaseTextSize()">A-</button>
-    <button class="zoom-btn" onclick="increaseTextSize()">A+</button>
-`;
-
-// Модифицируем функцию loadPDF() для адаптивного отображения
-function loadPDF(pdfData, isAnalysis = false) {
-    // Сохраняем текущую позицию прокрутки
-    const textScroll = pdfTextViewer.scrollTop;
-    const questionsScroll = pdfQuestionsViewer.scrollTop;
-    
-    // Очищаем контейнеры
-    pdfTextViewer.innerHTML = '';
-    pdfQuestionsViewer.innerHTML = '';
-    
-    if (!isAnalysis) {
-        const hint = document.createElement('p');
-        hint.style.padding = '10px';
-        hint.style.color = '#999';
-        hint.textContent = '📝 Кликните на любое место, чтобы добавить заметку';
-        pdfQuestionsViewer.appendChild(hint);
-    }
-    
-    pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
-        // Рассчитываем ширину контейнера для масштабирования
-        const containerWidth = pdfTextViewer.offsetWidth;
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
+            savedHistory.forEach(name => addTestToHistory(name));
+            
+            // Show ad on start page
+            showUnityAd();
+        });
+    </script>
+</body>
+</html>
         
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            pdf.getPage(pageNum).then(page => {
-                // Получаем размеры страницы
-                const viewport = page.getViewport({scale: 1.0});
-                
-                // Рассчитываем оптимальный масштаб
-                const optimalScale = (containerWidth - 40) / viewport.width; // 40px для отступов
-                const scale = Math.min(optimalScale, currentScale);
-                
-                const scaledViewport = page.getViewport({scale});
-                const canvas1 = document.createElement('canvas');
-                const canvas2 = document.createElement('canvas');
-                const context1 = canvas1.getContext('2d');
-                const context2 = canvas2.getContext('2d');
-                canvas1.height = scaledViewport.height;
-                canvas1.width = scaledViewport.width;
-                canvas2.height = scaledViewport.height;
-                canvas2.width = scaledViewport.width;
-
-                pdfTextViewer.appendChild(canvas1);
-                pdfQuestionsViewer.appendChild(canvas2);
-
-                page.render({canvasContext: context1, viewport: scaledViewport});
-                page.render({canvasContext: context2, viewport: scaledViewport});
-                
-                // Восстанавливаем позицию прокрутки после загрузки
-                setTimeout(() => {
-                    pdfTextViewer.scrollTop = textScroll;
-                    pdfQuestionsViewer.scrollTop = questionsScroll;
-                }, 100);
-            });
-        }
-    });
-    
-    // ... остальной код функции
-}
-
-// Добавляем обработчик изменения размера окна
-window.addEventListener('resize', () => {
-    if (currentPDFData) {
-        loadPDF(currentPDFData);
-    }
-});
-}
-
-// Add these variables at the top with your other declarations
-let textSizeMultiplier = 1.0;
-const textSizeStep = 0.2;
-const baseFontSize = 14;
-
-// Add these functions to your existing code
-function updateTextSize() {
-    document.querySelectorAll('.text-annotation').forEach(el => {
-        el.style.fontSize = `${baseFontSize * textSizeMultiplier}px`;
-        // Adjust width/height proportionally
-        const width = parseFloat(el.getAttribute('data-orig-width') || 200;
-        const height = parseFloat(el.getAttribute('data-orig-height')) || 24;
-        el.style.width = `${width * textSizeMultiplier}px`;
-        el.style.height = `${height * textSizeMultiplier}px`;
-    });
-}
-
-function increaseTextSize() {
-    if (textSizeMultiplier < 2.5) {
-        textSizeMultiplier += textSizeStep;
-        updateTextSize();
-        saveAnnotations();
-    }
-}
-
-function decreaseTextSize() {
-    if (textSizeMultiplier > 0.6) {
-        textSizeMultiplier -= textSizeStep;
-        updateTextSize();
-        saveAnnotations();
-    }
-}
-
-// Modify your createTextAnnotation function like this:
-function createTextAnnotation(x, y, container) {
-    const textAnnotation = document.createElement('textarea');
-    textAnnotation.className = 'text-annotation';
-    textAnnotation.style.left = x + 'px';
-    textAnnotation.style.top = y + 'px';
-    textAnnotation.style.width = (200 * textSizeMultiplier) + 'px';
-    textAnnotation.style.height = (24 * textSizeMultiplier) + 'px';
-    textAnnotation.style.fontSize = `${baseFontSize * textSizeMultiplier}px`;
-    
-    // Store original dimensions for resizing
-    textAnnotation.setAttribute('data-orig-width', '200');
-    textAnnotation.setAttribute('data-orig-height', '24');
-    
-    container.appendChild(textAnnotation);
-    textAnnotation.focus();
-    
-    textAnnotation.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-        this.setAttribute('data-orig-height', this.scrollHeight / textSizeMultiplier);
-        saveAnnotations();
-    });
-    
-    // ... rest of your existing event listeners ...
-}
-
-// Modify your saveAnnotations function to include text size:
-function saveAnnotations() {
-    const annotations = {
-        texts: [],
-        highlights: [],
-        textSizeMultiplier: textSizeMultiplier
-    };
-    // ... rest of your save logic ...
-}
-
-// Modify restoreAnnotations to restore text size:
-function restoreAnnotations() {
-    const saved = JSON.parse(localStorage.getItem('annotations')) || {texts: [], highlights: []};
-    
-    if (saved.textSizeMultiplier) {
-        textSizeMultiplier = saved.textSizeMultiplier;
-    }
-    // ... rest of your restore logic ...
-}
-
-// Add these buttons to your zoom controls (replace your zoomControls initialization):
-zoomControls.innerHTML = `
-    <button class="zoom-btn" onclick="zoomOut()">-</button>
-    <span class="zoom-value">100%</span>
-    <button class="zoom-btn" onclick="zoomIn()">+</button>
-    <span style="margin: 0 5px">|</span>
-    <button class="zoom-btn" onclick="decreaseTextSize()">A-</button>
-    <button class="zoom-btn" onclick="increaseTextSize()">A+</button>
-`;
-
-// Enhance your loadPDF function for better scaling:
-function loadPDF(pdfData, isAnalysis = false) {
-    // Save current scroll positions
-    const scrollPositions = {
-        text: pdfTextViewer.scrollTop,
-        questions: pdfQuestionsViewer.scrollTop
-    };
-    
-    // Clear containers
-    pdfTextViewer.innerHTML = '';
-    pdfQuestionsViewer.innerHTML = '';
-    
-    if (!isAnalysis) {
-        const hint = document.createElement('p');
-        hint.style.padding = '10px';
-        hint.style.color = '#999';
-        hint.textContent = '📝 Кликните на любое место, чтобы добавить заметку';
-        pdfQuestionsViewer.appendChild(hint);
-    }
-    
-    pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
-        // Calculate available width (subtract 20px for padding)
-        const availableWidth = pdfTextViewer.clientWidth - 20;
-        
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            pdf.getPage(pageNum).then(page => {
-                const viewport = page.getViewport({scale: 1.0});
-                
-                // Calculate scale to fit width or use current zoom
-                const fitScale = availableWidth / viewport.width;
-                const renderScale = Math.min(fitScale, currentScale);
-                
-                const renderViewport = page.getViewport({scale: renderScale});
-                
-                const canvas1 = document.createElement('canvas');
-                const canvas2 = document.createElement('canvas');
-                canvas1.height = renderViewport.height;
-                canvas1.width = renderViewport.width;
-                canvas2.height = renderViewport.height;
-                canvas2.width = renderViewport.width;
-                
-                pdfTextViewer.appendChild(canvas1);
-                pdfQuestionsViewer.appendChild(canvas2);
-                
-                page.render({
-                    canvasContext: canvas1.getContext('2d'),
-                    viewport: renderViewport
-                });
-                page.render({
-                    canvasContext: canvas2.getContext('2d'),
-                    viewport: renderViewport
-                });
-                
-                // Restore scroll positions after rendering
-                setTimeout(() => {
-                    pdfTextViewer.scrollTop = scrollPositions.text;
-                    pdfQuestionsViewer.scrollTop = scrollPositions.questions;
-                }, 100);
-            });
-        }
-    });
-    
-    // ... rest of your existing loadPDF code ...
-}
-
-// Add resize handler
-window.addEventListener('resize', () => {
-    if (currentPDFData) {
-        loadPDF(currentPDFData);
-    }
-});
+        // Остальной код остается без изменений
     </script>
 </body>
 </html>
