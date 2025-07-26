@@ -1396,6 +1396,168 @@ window.addEventListener('resize', () => {
     }
 });
 }
+
+// Add these variables at the top with your other declarations
+let textSizeMultiplier = 1.0;
+const textSizeStep = 0.2;
+const baseFontSize = 14;
+
+// Add these functions to your existing code
+function updateTextSize() {
+    document.querySelectorAll('.text-annotation').forEach(el => {
+        el.style.fontSize = `${baseFontSize * textSizeMultiplier}px`;
+        // Adjust width/height proportionally
+        const width = parseFloat(el.getAttribute('data-orig-width') || 200;
+        const height = parseFloat(el.getAttribute('data-orig-height')) || 24;
+        el.style.width = `${width * textSizeMultiplier}px`;
+        el.style.height = `${height * textSizeMultiplier}px`;
+    });
+}
+
+function increaseTextSize() {
+    if (textSizeMultiplier < 2.5) {
+        textSizeMultiplier += textSizeStep;
+        updateTextSize();
+        saveAnnotations();
+    }
+}
+
+function decreaseTextSize() {
+    if (textSizeMultiplier > 0.6) {
+        textSizeMultiplier -= textSizeStep;
+        updateTextSize();
+        saveAnnotations();
+    }
+}
+
+// Modify your createTextAnnotation function like this:
+function createTextAnnotation(x, y, container) {
+    const textAnnotation = document.createElement('textarea');
+    textAnnotation.className = 'text-annotation';
+    textAnnotation.style.left = x + 'px';
+    textAnnotation.style.top = y + 'px';
+    textAnnotation.style.width = (200 * textSizeMultiplier) + 'px';
+    textAnnotation.style.height = (24 * textSizeMultiplier) + 'px';
+    textAnnotation.style.fontSize = `${baseFontSize * textSizeMultiplier}px`;
+    
+    // Store original dimensions for resizing
+    textAnnotation.setAttribute('data-orig-width', '200');
+    textAnnotation.setAttribute('data-orig-height', '24');
+    
+    container.appendChild(textAnnotation);
+    textAnnotation.focus();
+    
+    textAnnotation.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        this.setAttribute('data-orig-height', this.scrollHeight / textSizeMultiplier);
+        saveAnnotations();
+    });
+    
+    // ... rest of your existing event listeners ...
+}
+
+// Modify your saveAnnotations function to include text size:
+function saveAnnotations() {
+    const annotations = {
+        texts: [],
+        highlights: [],
+        textSizeMultiplier: textSizeMultiplier
+    };
+    // ... rest of your save logic ...
+}
+
+// Modify restoreAnnotations to restore text size:
+function restoreAnnotations() {
+    const saved = JSON.parse(localStorage.getItem('annotations')) || {texts: [], highlights: []};
+    
+    if (saved.textSizeMultiplier) {
+        textSizeMultiplier = saved.textSizeMultiplier;
+    }
+    // ... rest of your restore logic ...
+}
+
+// Add these buttons to your zoom controls (replace your zoomControls initialization):
+zoomControls.innerHTML = `
+    <button class="zoom-btn" onclick="zoomOut()">-</button>
+    <span class="zoom-value">100%</span>
+    <button class="zoom-btn" onclick="zoomIn()">+</button>
+    <span style="margin: 0 5px">|</span>
+    <button class="zoom-btn" onclick="decreaseTextSize()">A-</button>
+    <button class="zoom-btn" onclick="increaseTextSize()">A+</button>
+`;
+
+// Enhance your loadPDF function for better scaling:
+function loadPDF(pdfData, isAnalysis = false) {
+    // Save current scroll positions
+    const scrollPositions = {
+        text: pdfTextViewer.scrollTop,
+        questions: pdfQuestionsViewer.scrollTop
+    };
+    
+    // Clear containers
+    pdfTextViewer.innerHTML = '';
+    pdfQuestionsViewer.innerHTML = '';
+    
+    if (!isAnalysis) {
+        const hint = document.createElement('p');
+        hint.style.padding = '10px';
+        hint.style.color = '#999';
+        hint.textContent = '📝 Кликните на любое место, чтобы добавить заметку';
+        pdfQuestionsViewer.appendChild(hint);
+    }
+    
+    pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
+        // Calculate available width (subtract 20px for padding)
+        const availableWidth = pdfTextViewer.clientWidth - 20;
+        
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            pdf.getPage(pageNum).then(page => {
+                const viewport = page.getViewport({scale: 1.0});
+                
+                // Calculate scale to fit width or use current zoom
+                const fitScale = availableWidth / viewport.width;
+                const renderScale = Math.min(fitScale, currentScale);
+                
+                const renderViewport = page.getViewport({scale: renderScale});
+                
+                const canvas1 = document.createElement('canvas');
+                const canvas2 = document.createElement('canvas');
+                canvas1.height = renderViewport.height;
+                canvas1.width = renderViewport.width;
+                canvas2.height = renderViewport.height;
+                canvas2.width = renderViewport.width;
+                
+                pdfTextViewer.appendChild(canvas1);
+                pdfQuestionsViewer.appendChild(canvas2);
+                
+                page.render({
+                    canvasContext: canvas1.getContext('2d'),
+                    viewport: renderViewport
+                });
+                page.render({
+                    canvasContext: canvas2.getContext('2d'),
+                    viewport: renderViewport
+                });
+                
+                // Restore scroll positions after rendering
+                setTimeout(() => {
+                    pdfTextViewer.scrollTop = scrollPositions.text;
+                    pdfQuestionsViewer.scrollTop = scrollPositions.questions;
+                }, 100);
+            });
+        }
+    });
+    
+    // ... rest of your existing loadPDF code ...
+}
+
+// Add resize handler
+window.addEventListener('resize', () => {
+    if (currentPDFData) {
+        loadPDF(currentPDFData);
+    }
+});
     </script>
 </body>
 </html>
