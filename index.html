@@ -71,22 +71,6 @@
             background-color: #1e1e1e;
             border-color: #444;
         }
-        .editable-text {
-            position: absolute !important;
-            min-width: 50px;
-            min-height: 20px;
-            background-color: rgba(255,255,255,0.6);
-            border: 1px dashed #1a73e8;
-            padding: 2px 5px;
-            border-radius: 4px;
-            cursor: text;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-        body.dark-mode .editable-text {
-            background-color: rgba(30,30,30,0.8);
-            border-color: #64b5f6;
-            color: #e0e0e0;
-        }
         #timer {
             position: fixed;
             top: 15px;
@@ -209,14 +193,11 @@
         body.dark-mode #madeBy {
             color: #64b5f6;
         }
-        .highlight {
-            background-color: yellow;
-            cursor: pointer;
-        }
         .highlight-area {
-            position: absolute !important;
-            background-color: rgba(255, 255, 0, 0.5);
+            position: absolute;
+            background-color: rgba(255, 255, 0, 0.3);
             z-index: 5;
+            pointer-events: none;
         }
         .zoom-controls {
             position: fixed;
@@ -574,6 +555,30 @@
         body.dark-mode .toggle-label {
             color: #e0e0e0;
         }
+
+        /* Text annotations */
+        .text-annotation {
+            position: absolute;
+            color: black;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.4;
+            outline: none;
+            resize: none;
+            overflow: hidden;
+            cursor: text;
+            z-index: 10;
+        }
+        body.dark-mode .text-annotation {
+            color: white;
+        }
+        .text-annotation:focus {
+            outline: none;
+        }
     </style>
 </head>
 <body>
@@ -608,7 +613,7 @@
     <div id="pdfContainer" style="display:none;">
         <div class="pdf-viewer" id="pdfTextViewer"></div>
         <div class="pdf-viewer" id="pdfQuestionsViewer">
-            <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)</p>
+            <p style="padding: 10px; color: #999;">📝 Кликните на любое место, чтобы добавить заметку</p>
         </div>
     </div>
 
@@ -637,7 +642,6 @@
 
     <div class="annotation-tools" id="annotationTools">
         <button class="annotation-btn" id="highlightToolBtn" onclick="toggleHighlightMode()">Хайлайт</button>
-        <button class="annotation-btn" id="textToolBtn" onclick="toggleTextMode()">Добавить текст</button>
     </div>
 
     <div class="context-menu" id="contextMenu">
@@ -673,7 +677,6 @@
         const annotationTools = document.getElementById('annotationTools');
         const toolsToggle = document.getElementById('toolsToggle');
         const highlightToolBtn = document.getElementById('highlightToolBtn');
-        const textToolBtn = document.getElementById('textToolBtn');
         const contextMenu = document.getElementById('contextMenu');
         const darkModeToggle = document.getElementById('darkModeToggle');
         
@@ -682,7 +685,6 @@
         let loadedFileName = "";
         let currentPDFData = null;
         let isHighlighting = false;
-        let isTextMode = false;
         let highlightStartX = 0;
         let highlightStartY = 0;
         let currentHighlightArea = null;
@@ -709,6 +711,121 @@
 
         // Add event listener to toggle
         darkModeToggle.addEventListener('change', toggleDarkMode);
+
+        function createTextAnnotation(x, y, container) {
+            const textAnnotation = document.createElement('textarea');
+            textAnnotation.className = 'text-annotation';
+            textAnnotation.style.left = x + 'px';
+            textAnnotation.style.top = y + 'px';
+            textAnnotation.style.width = '200px';
+            textAnnotation.style.height = '24px';
+            
+            container.appendChild(textAnnotation);
+            textAnnotation.focus();
+            
+            // Auto-resize
+            textAnnotation.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+                saveAnnotations();
+            });
+            
+            textAnnotation.addEventListener('blur', function() {
+                if (this.value.trim() === '') {
+                    this.remove();
+                }
+                saveAnnotations();
+            });
+            
+            // Save on any change
+            textAnnotation.addEventListener('keyup', saveAnnotations);
+            
+            return textAnnotation;
+        }
+
+        function saveAnnotations() {
+            const annotations = {
+                texts: [],
+                highlights: []
+            };
+            
+            // Save text annotations
+            document.querySelectorAll('.text-annotation').forEach(el => {
+                annotations.texts.push({
+                    left: el.style.left,
+                    top: el.style.top,
+                    width: el.style.width,
+                    height: el.style.height,
+                    text: el.value,
+                    containerId: el.parentElement.id,
+                    scrollTop: el.parentElement.scrollTop,
+                    scrollLeft: el.parentElement.scrollLeft
+                });
+            });
+            
+            // Save highlights
+            highlights.forEach(highlight => {
+                annotations.highlights.push({
+                    left: highlight.element.style.left,
+                    top: highlight.element.style.top,
+                    width: highlight.element.style.width,
+                    height: highlight.element.style.height,
+                    containerId: highlight.container.id,
+                    scrollTop: highlight.container.scrollTop,
+                    scrollLeft: highlight.container.scrollLeft
+                });
+            });
+            
+            localStorage.setItem('annotations', JSON.stringify(annotations));
+        }
+
+        function restoreAnnotations() {
+            const saved = JSON.parse(localStorage.getItem('annotations')) || {texts: [], highlights: []};
+            
+            // Restore text annotations
+            saved.texts.forEach(text => {
+                const container = document.getElementById(text.containerId);
+                if (container) {
+                    const annotation = createTextAnnotation(
+                        parseInt(text.left),
+                        parseInt(text.top),
+                        container
+                    );
+                    annotation.value = text.text;
+                    annotation.style.width = text.width;
+                    annotation.style.height = text.height;
+                    
+                    if (text.scrollTop) {
+                        container.scrollTop = text.scrollTop;
+                        container.scrollLeft = text.scrollLeft;
+                    }
+                }
+            });
+            
+            // Restore highlights
+            saved.highlights.forEach(hl => {
+                const highlightArea = document.createElement('div');
+                highlightArea.className = 'highlight-area';
+                highlightArea.style.left = hl.left;
+                highlightArea.style.top = hl.top;
+                highlightArea.style.width = hl.width;
+                highlightArea.style.height = hl.height;
+                
+                const container = document.getElementById(hl.containerId);
+                if (container) {
+                    container.appendChild(highlightArea);
+                    highlights.push({
+                        element: highlightArea,
+                        container: container
+                    });
+                    
+                    if (hl.scrollTop) {
+                        container.scrollTop = hl.scrollTop;
+                        container.scrollLeft = hl.scrollLeft;
+                    }
+                }
+            });
+        }
 
         function showUnityAd() {
             const isStartPage = uploadSection.style.display !== "none";
@@ -788,7 +905,6 @@
                 loadPDF(currentPDFData);
                 setupHighlighting();
                 setupContextMenu();
-                setupTextDeletion();
             };
             fileReader.readAsArrayBuffer(fileInput.files[0]);
         }
@@ -805,63 +921,27 @@
         }
 
         function setupContextMenu() {
-            pdfTextViewer.addEventListener('contextmenu', showContextMenu);
-            pdfQuestionsViewer.addEventListener('contextmenu', showContextMenu);
-            
-            pdfQuestionsViewer.addEventListener('contextmenu', function(e) {
-                if (e.target.classList.contains('editable-text')) {
+            document.addEventListener('contextmenu', function(e) {
+                if (e.target.classList.contains('text-annotation') || 
+                    e.target.classList.contains('highlight-area')) {
                     e.preventDefault();
                     selectedItem = e.target;
-                    showContextMenu(e);
-                }
-            }, true);
-        }
-
-        function setupTextDeletion() {
-            // Обработчик для удаления текста при нажатии Delete/Backspace
-            document.addEventListener('keydown', function(e) {
-                if ((e.key === 'Delete' || e.key === 'Backspace') && selectedItem) {
-                    deleteSelectedItem();
+                    
+                    contextMenu.style.display = 'block';
+                    contextMenu.style.left = `${e.clientX}px`;
+                    contextMenu.style.top = `${e.clientY}px`;
                 }
             });
             
-            // Обработчик для снятия выделения при клике вне элемента
-            document.addEventListener('click', function(e) {
-                if (!e.target.classList.contains('editable-text') && !e.target.classList.contains('highlight-area')) {
-                    selectedItem = null;
-                }
+            document.addEventListener('click', function() {
+                contextMenu.style.display = 'none';
             });
-        }
-
-        function showContextMenu(e) {
-            if (e.target.classList.contains('highlight-area') || e.target.classList.contains('editable-text')) {
-                e.preventDefault();
-                selectedItem = e.target;
-                
-                contextMenu.style.display = 'block';
-                contextMenu.style.left = `${e.clientX}px`;
-                contextMenu.style.top = `${e.clientY}px`;
-            }
         }
 
         function deleteSelectedItem() {
             if (selectedItem) {
-                if (selectedItem.classList.contains('highlight-area')) {
-                    // Удаляем хайлайт
-                    highlights = highlights.filter(h => h.element !== selectedItem);
-                    saveHighlights();
-                } else if (selectedItem.classList.contains('editable-text')) {
-                    // Удаляем текстовый элемент
-                    const answers = JSON.parse(localStorage.getItem('savedAnswers')) || [];
-                    const updatedAnswers = answers.filter(answer => 
-                        answer.left !== selectedItem.style.left || 
-                        answer.top !== selectedItem.style.top
-                    );
-                    localStorage.setItem('savedAnswers', JSON.stringify(updatedAnswers));
-                }
-                
-                // Полностью удаляем элемент из DOM
                 selectedItem.remove();
+                saveAnnotations();
                 selectedItem = null;
                 contextMenu.style.display = 'none';
             }
@@ -869,9 +949,7 @@
 
         function toggleHighlightMode() {
             isHighlighting = !isHighlighting;
-            isTextMode = false;
             highlightToolBtn.classList.toggle('active', isHighlighting);
-            textToolBtn.classList.remove('active');
             
             if (isHighlighting) {
                 pdfTextViewer.style.cursor = 'crosshair';
@@ -879,21 +957,6 @@
             } else {
                 pdfTextViewer.style.cursor = 'default';
                 pdfQuestionsViewer.style.cursor = 'default';
-            }
-        }
-
-        function toggleTextMode() {
-            isTextMode = !isTextMode;
-            isHighlighting = false;
-            textToolBtn.classList.toggle('active', isTextMode);
-            highlightToolBtn.classList.remove('active');
-            
-            if (isTextMode) {
-                pdfQuestionsViewer.style.cursor = 'text';
-                pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (режим добавления текста активен)';
-            } else {
-                pdfQuestionsViewer.style.cursor = 'default';
-                pdfQuestionsViewer.querySelector('p').textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
             }
         }
 
@@ -933,12 +996,11 @@
             if (!isHighlighting || !currentHighlightArea) return;
             
             if (currentHighlightArea.offsetWidth > 5 && currentHighlightArea.offsetHeight > 5) {
-                currentHighlightArea.classList.add('highlight');
                 highlights.push({
                     element: currentHighlightArea,
                     container: e.target.parentElement
                 });
-                saveHighlights();
+                saveAnnotations();
             } else {
                 currentHighlightArea.remove();
             }
@@ -969,10 +1031,9 @@
             toolsToggle.style.display = "none";
             endTest.style.display = "flex";
             addTestToHistory(loadedFileName);
-            saveAnswers();
-            saveHighlights();
+            saveAnnotations();
             
-            // Сохраняем позиции скролла перед переходом
+            // Save scroll positions
             scrollPositions.text = pdfTextViewer.scrollTop;
             scrollPositions.questions = pdfQuestionsViewer.scrollTop;
             
@@ -988,10 +1049,9 @@
             annotationTools.style.display = "block";
             toolsToggle.style.display = "flex";
             loadPDF(currentPDFData, true);
-            restoreAnswers();
-            restoreHighlights();
+            restoreAnnotations();
             
-            // Восстанавливаем позиции скролла после загрузки
+            // Restore scroll positions
             setTimeout(() => {
                 pdfTextViewer.scrollTop = scrollPositions.text;
                 pdfQuestionsViewer.scrollTop = scrollPositions.questions;
@@ -1017,7 +1077,7 @@
                 const hint = document.createElement('p');
                 hint.style.padding = '10px';
                 hint.style.color = '#999';
-                hint.textContent = '📝 Кликните на любое место, чтобы добавить текст (когда включен режим добавления текста)';
+                hint.textContent = '📝 Кликните на любое место, чтобы добавить заметку';
                 pdfQuestionsViewer.appendChild(hint);
             }
             
@@ -1043,31 +1103,30 @@
                 }
             });
             
+            // Add text annotation on click
+            pdfTextViewer.addEventListener('click', function(e) {
+                if (e.target.tagName === 'CANVAS') {
+                    const rect = pdfTextViewer.getBoundingClientRect();
+                    const x = e.clientX - rect.left + pdfTextViewer.scrollLeft;
+                    const y = e.clientY - rect.top + pdfTextViewer.scrollTop;
+                    
+                    createTextAnnotation(x, y, pdfTextViewer);
+                }
+            });
+            
             pdfQuestionsViewer.addEventListener('click', function(e) {
-                if (isTextMode && e.target.tagName === 'CANVAS') {
+                if (e.target.tagName === 'CANVAS') {
                     const rect = pdfQuestionsViewer.getBoundingClientRect();
                     const x = e.clientX - rect.left + pdfQuestionsViewer.scrollLeft;
                     const y = e.clientY - rect.top + pdfQuestionsViewer.scrollTop;
                     
-                    const editable = document.createElement('div');
-                    editable.className = 'editable-text';
-                    editable.contentEditable = true;
-                    editable.style.left = x + 'px';
-                    editable.style.top = y + 'px';
-                    pdfQuestionsViewer.appendChild(editable);
-                    editable.focus();
-                    
-                    // Сохраняем при изменении
-                    editable.addEventListener('input', saveAnswers);
-                    editable.addEventListener('blur', saveAnswers);
-                    
-                    // Выделяем элемент для возможного удаления
-                    editable.addEventListener('click', function(ev) {
-                        ev.stopPropagation();
-                        selectedItem = this;
-                    });
+                    createTextAnnotation(x, y, pdfQuestionsViewer);
                 }
             });
+            
+            if (isAnalysis) {
+                restoreAnnotations();
+            }
         }
 
         function addTestToHistory(name) {
@@ -1080,92 +1139,6 @@
             localStorage.setItem('testHistory', JSON.stringify(savedHistory));
         }
 
-        function saveAnswers() {
-            const answers = [];
-            document.querySelectorAll('.editable-text').forEach(el => {
-                answers.push({ 
-                    left: el.style.left, 
-                    top: el.style.top, 
-                    text: el.innerText,
-                    scrollTop: pdfQuestionsViewer.scrollTop,
-                    scrollLeft: pdfQuestionsViewer.scrollLeft
-                });
-            });
-            localStorage.setItem('savedAnswers', JSON.stringify(answers));
-        }
-
-        function restoreAnswers() {
-            const answers = JSON.parse(localStorage.getItem('savedAnswers')) || [];
-            answers.forEach(answer => {
-                const editable = document.createElement('div');
-                editable.className = 'editable-text';
-                editable.contentEditable = true;
-                editable.style.left = answer.left;
-                editable.style.top = answer.top;
-                editable.innerText = answer.text;
-                editable.style.position = 'absolute';
-                pdfQuestionsViewer.appendChild(editable);
-                
-                // Восстанавливаем позицию скролла из последнего ответа
-                if (answer.scrollTop) {
-                    pdfQuestionsViewer.scrollTop = answer.scrollTop;
-                    pdfQuestionsViewer.scrollLeft = answer.scrollLeft;
-                }
-                
-                // Добавляем обработчики для нового элемента
-                editable.addEventListener('input', saveAnswers);
-                editable.addEventListener('blur', saveAnswers);
-                editable.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    selectedItem = this;
-                });
-            });
-        }
-        
-        function saveHighlights() {
-            const savedHighlights = [];
-            highlights.forEach(highlight => {
-                savedHighlights.push({
-                    left: highlight.element.style.left,
-                    top: highlight.element.style.top,
-                    width: highlight.element.style.width,
-                    height: highlight.element.style.height,
-                    containerId: highlight.container.id,
-                    scrollTop: pdfTextViewer.scrollTop,
-                    scrollLeft: pdfTextViewer.scrollLeft
-                });
-            });
-            localStorage.setItem('savedHighlights', JSON.stringify(savedHighlights));
-        }
-        
-        function restoreHighlights() {
-            const savedHighlights = JSON.parse(localStorage.getItem('savedHighlights')) || [];
-            savedHighlights.forEach(hl => {
-                const highlightArea = document.createElement('div');
-                highlightArea.className = 'highlight-area highlight';
-                highlightArea.style.left = hl.left;
-                highlightArea.style.top = hl.top;
-                highlightArea.style.width = hl.width;
-                highlightArea.style.height = hl.height;
-                highlightArea.style.position = 'absolute';
-                
-                const container = document.getElementById(hl.containerId);
-                if (container) {
-                    container.appendChild(highlightArea);
-                    highlights.push({
-                        element: highlightArea,
-                        container: container
-                    });
-                    
-                    // Восстанавливаем позицию скролла из последнего хайлайта
-                    if (hl.scrollTop) {
-                        pdfTextViewer.scrollTop = hl.scrollTop;
-                        pdfTextViewer.scrollLeft = hl.scrollLeft;
-                    }
-                }
-            });
-        }
-        
         function hideAd() {
             const adContainer = document.querySelector('.unity-ad-container');
             adContainer.style.opacity = '0';
@@ -1181,28 +1154,9 @@
             const savedHistory = JSON.parse(localStorage.getItem('testHistory')) || [];
             savedHistory.forEach(name => addTestToHistory(name));
             
-            document.addEventListener('click', () => {
-                contextMenu.style.display = 'none';
-            });
-            
-            const pulse = document.querySelector('.pulse-effect');
-            if(pulse) {
-                const randomDelay = Math.random() * 2;
-                pulse.style.animationDelay = `${randomDelay}s`;
-                
-                setInterval(() => {
-                    const newPulse = pulse.cloneNode(true);
-                    pulse.parentNode.appendChild(newPulse);
-                    setTimeout(() => {
-                        newPulse.remove();
-                    }, 4000);
-                }, 4000);
-            }
-            
-            // Показываем рекламу при загрузке стартовой страницы
+            // Show ad on start page
             showUnityAd();
         });
     </script>
 </body>
 </html>
-
