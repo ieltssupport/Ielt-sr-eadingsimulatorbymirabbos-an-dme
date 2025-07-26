@@ -1247,7 +1247,155 @@
 
         // Initialize the application when DOM is loaded
         document.addEventListener('DOMContentLoaded', init);
+
+// Добавляем в начало скрипта (после объявления переменных)
+let textSizeMultiplier = 1.0;
+const textSizeStep = 0.1;
+
+// Добавляем в функцию updateZoom() перед loadPDF(currentPDFData)
+function updateTextSize() {
+    const textElements = document.querySelectorAll('.text-annotation');
+    textElements.forEach(el => {
+        const baseSize = 14; // Базовый размер шрифта
+        el.style.fontSize = `${baseSize * textSizeMultiplier}px`;
+    });
+}
+
+// Добавляем новые функции для управления размером текста
+function increaseTextSize() {
+    if (textSizeMultiplier < 2.0) {
+        textSizeMultiplier += textSizeStep;
+        updateTextSize();
+        saveAnnotations();
+    }
+}
+
+function decreaseTextSize() {
+    if (textSizeMultiplier > 0.5) {
+        textSizeMultiplier -= textSizeStep;
+        updateTextSize();
+        saveAnnotations();
+    }
+}
+
+// Модифицируем функцию createTextAnnotation()
+function createTextAnnotation(x, y, container) {
+    const textAnnotation = document.createElement('textarea');
+    textAnnotation.className = 'text-annotation';
+    textAnnotation.style.left = x + 'px';
+    textAnnotation.style.top = y + 'px';
+    textAnnotation.style.width = (200 * textSizeMultiplier) + 'px';
+    textAnnotation.style.height = (24 * textSizeMultiplier) + 'px';
+    textAnnotation.style.fontSize = `${14 * textSizeMultiplier}px`;
+    
+    container.appendChild(textAnnotation);
+    textAnnotation.focus();
+    
+    // Auto-resize
+    textAnnotation.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        saveAnnotations();
+    });
+    
+    // ... остальной код функции без изменений
+}
+
+// Модифицируем функцию restoreAnnotations()
+function restoreAnnotations() {
+    const saved = JSON.parse(localStorage.getItem('annotations')) || {texts: [], highlights: []};
+    
+    // Восстанавливаем множитель размера текста
+    if (saved.textSizeMultiplier) {
+        textSizeMultiplier = saved.textSizeMultiplier;
+    }
+    
+    // ... остальной код функции
+}
+
+// Модифицируем функцию saveAnnotations()
+function saveAnnotations() {
+    const annotations = {
+        texts: [],
+        highlights: [],
+        textSizeMultiplier: textSizeMultiplier
+    };
+    
+    // ... остальной код функции
+}
+
+// Добавляем кнопки управления размером текста в zoomControls
+zoomControls.innerHTML += `
+    <button class="zoom-btn" onclick="decreaseTextSize()">A-</button>
+    <button class="zoom-btn" onclick="increaseTextSize()">A+</button>
+`;
+
+// Модифицируем функцию loadPDF() для адаптивного отображения
+function loadPDF(pdfData, isAnalysis = false) {
+    // Сохраняем текущую позицию прокрутки
+    const textScroll = pdfTextViewer.scrollTop;
+    const questionsScroll = pdfQuestionsViewer.scrollTop;
+    
+    // Очищаем контейнеры
+    pdfTextViewer.innerHTML = '';
+    pdfQuestionsViewer.innerHTML = '';
+    
+    if (!isAnalysis) {
+        const hint = document.createElement('p');
+        hint.style.padding = '10px';
+        hint.style.color = '#999';
+        hint.textContent = '📝 Кликните на любое место, чтобы добавить заметку';
+        pdfQuestionsViewer.appendChild(hint);
+    }
+    
+    pdfjsLib.getDocument({data: pdfData}).promise.then(pdf => {
+        // Рассчитываем ширину контейнера для масштабирования
+        const containerWidth = pdfTextViewer.offsetWidth;
+        
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            pdf.getPage(pageNum).then(page => {
+                // Получаем размеры страницы
+                const viewport = page.getViewport({scale: 1.0});
+                
+                // Рассчитываем оптимальный масштаб
+                const optimalScale = (containerWidth - 40) / viewport.width; // 40px для отступов
+                const scale = Math.min(optimalScale, currentScale);
+                
+                const scaledViewport = page.getViewport({scale});
+                const canvas1 = document.createElement('canvas');
+                const canvas2 = document.createElement('canvas');
+                const context1 = canvas1.getContext('2d');
+                const context2 = canvas2.getContext('2d');
+                canvas1.height = scaledViewport.height;
+                canvas1.width = scaledViewport.width;
+                canvas2.height = scaledViewport.height;
+                canvas2.width = scaledViewport.width;
+
+                pdfTextViewer.appendChild(canvas1);
+                pdfQuestionsViewer.appendChild(canvas2);
+
+                page.render({canvasContext: context1, viewport: scaledViewport});
+                page.render({canvasContext: context2, viewport: scaledViewport});
+                
+                // Восстанавливаем позицию прокрутки после загрузки
+                setTimeout(() => {
+                    pdfTextViewer.scrollTop = textScroll;
+                    pdfQuestionsViewer.scrollTop = questionsScroll;
+                }, 100);
+            });
+        }
+    });
+    
+    // ... остальной код функции
+}
+
+// Добавляем обработчик изменения размера окна
+window.addEventListener('resize', () => {
+    if (currentPDFData) {
+        loadPDF(currentPDFData);
+    }
+});
+}
     </script>
 </body>
 </html>
-}
