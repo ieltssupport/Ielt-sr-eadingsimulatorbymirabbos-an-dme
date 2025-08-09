@@ -82,9 +82,18 @@
             font-size: 20px;
             z-index: 10;
             transition: background-color 0.3s;
+            cursor: pointer;
+            user-select: none;
         }
         body.dark-mode #timer {
             background-color: #0d47a1;
+        }
+        #timer:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        #timer:active {
+            transform: scale(0.98);
         }
         #controls {
             text-align: center;
@@ -579,6 +588,106 @@
         .text-annotation:focus {
             outline: none;
         }
+
+        /* Timer Settings Modal */
+        .timer-settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .timer-settings-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .timer-settings-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 350px;
+            max-width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        body.dark-mode .timer-settings-content {
+            background-color: #333;
+        }
+        .timer-settings-modal.active .timer-settings-content {
+            transform: translateY(0);
+        }
+        .timer-settings-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #1a73e8;
+        }
+        body.dark-mode .timer-settings-title {
+            color: #64b5f6;
+        }
+        .timer-input-group {
+            margin-bottom: 20px;
+        }
+        .timer-input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .timer-input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        body.dark-mode .timer-input-group input {
+            background-color: #444;
+            border-color: #555;
+            color: white;
+        }
+        .timer-save-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        body.dark-mode .timer-save-btn {
+            background-color: #0d47a1;
+        }
+        .timer-save-btn:hover {
+            background-color: #1558b0;
+        }
+        body.dark-mode .timer-save-btn:hover {
+            background-color: #1565c0;
+        }
+        .timer-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #777;
+        }
+        body.dark-mode .timer-close-btn {
+            color: #aaa;
+        }
     </style>
 </head>
 <body>
@@ -601,6 +710,23 @@
     </div>
 
     <div id="timer" style="display:none;">60:00</div>
+
+    <!-- Timer Settings Modal -->
+    <div class="timer-settings-modal" id="timerSettingsModal">
+        <div class="timer-settings-content">
+            <button class="timer-close-btn" onclick="closeTimerSettings()">×</button>
+            <h2 class="timer-settings-title">Настройки таймера</h2>
+            <div class="timer-input-group">
+                <label for="timerMinutes">Минуты:</label>
+                <input type="number" id="timerMinutes" min="1" max="180" value="60">
+            </div>
+            <div class="timer-input-group">
+                <label for="timerSeconds">Секунды:</label>
+                <input type="number" id="timerSeconds" min="0" max="59" value="0">
+            </div>
+            <button class="timer-save-btn" onclick="saveTimerSettings()">Сохранить</button>
+        </div>
+    </div>
 
     <div id="controls" style="display:none;">
         <button id="endTestBtn" onclick="endTestFunc()">Завершить тест</button>
@@ -679,6 +805,9 @@
         const highlightToolBtn = document.getElementById('highlightToolBtn');
         const contextMenu = document.getElementById('contextMenu');
         const darkModeToggle = document.getElementById('darkModeToggle');
+        const timerSettingsModal = document.getElementById('timerSettingsModal');
+        const timerMinutesInput = document.getElementById('timerMinutes');
+        const timerSecondsInput = document.getElementById('timerSeconds');
         
         let countdown;
         let totalTime = 60 * 60;
@@ -711,6 +840,60 @@
 
         // Add event listener to toggle
         darkModeToggle.addEventListener('change', toggleDarkMode);
+
+        // Timer settings functions
+        function openTimerSettings() {
+            // Calculate current minutes and seconds
+            const minutes = Math.floor(totalTime / 60);
+            const seconds = totalTime % 60;
+            
+            // Set input values
+            timerMinutesInput.value = minutes;
+            timerSecondsInput.value = seconds;
+            
+            // Show modal with animation
+            timerSettingsModal.classList.add('active');
+        }
+
+        function closeTimerSettings() {
+            timerSettingsModal.classList.remove('active');
+        }
+
+        function saveTimerSettings() {
+            const minutes = parseInt(timerMinutesInput.value) || 0;
+            const seconds = parseInt(timerSecondsInput.value) || 0;
+            
+            // Validate input
+            if (minutes < 0 || minutes > 180) {
+                alert("Минуты должны быть между 0 и 180");
+                return;
+            }
+            
+            if (seconds < 0 || seconds > 59) {
+                alert("Секунды должны быть между 0 и 59");
+                return;
+            }
+            
+            if (minutes === 0 && seconds === 0) {
+                alert("Время не может быть 0");
+                return;
+            }
+            
+            // Calculate total time in seconds
+            totalTime = (minutes * 60) + seconds;
+            
+            // Update timer display
+            updateTimerDisplay();
+            
+            // Close modal
+            closeTimerSettings();
+        }
+
+        function updateTimerDisplay() {
+            let minutes = String(Math.floor(totalTime / 60)).padStart(2, '0');
+            let seconds = String(totalTime % 60).padStart(2, '0');
+            timerDisplay.textContent = `${minutes}:${seconds}`;
+        }
 
         function createTextAnnotation(x, y, container) {
             const textAnnotation = document.createElement('textarea');
@@ -1009,11 +1192,10 @@
         }
 
         function startTimer() {
+            updateTimerDisplay();
             countdown = setInterval(() => {
                 totalTime--;
-                let minutes = String(Math.floor(totalTime / 60)).padStart(2, '0');
-                let seconds = String(totalTime % 60).padStart(2, '0');
-                timerDisplay.textContent = `${minutes}:${seconds}`;
+                updateTimerDisplay();
                 if (totalTime <= 0) {
                     clearInterval(countdown);
                     endTestFunc();
@@ -1156,6 +1338,9 @@
             
             // Show ad on start page
             showUnityAd();
+            
+            // Add click event to timer to open settings
+            timerDisplay.addEventListener('click', openTimerSettings);
         });
     </script>
 </body>
