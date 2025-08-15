@@ -932,30 +932,57 @@
                 highlights: []
             };
             
-            // Save text annotations
-            document.querySelectorAll('.text-annotation').forEach(el => {
+            // Save text annotations from LEFT section
+            document.querySelectorAll('#pdfTextViewer .text-annotation').forEach(el => {
                 annotations.texts.push({
                     left: el.style.left,
                     top: el.style.top,
                     width: el.style.width,
                     height: el.style.height,
                     text: el.value,
-                    containerId: el.parentElement.id,
-                    scrollTop: el.parentElement.scrollTop,
-                    scrollLeft: el.parentElement.scrollLeft
+                    containerId: 'pdfTextViewer',
+                    scrollTop: pdfTextViewer.scrollTop,
+                    scrollLeft: pdfTextViewer.scrollLeft
                 });
             });
             
-            // Save highlights
-            highlights.forEach(highlight => {
+            // Save text annotations from RIGHT section
+            document.querySelectorAll('#pdfQuestionsViewer .text-annotation').forEach(el => {
+                annotations.texts.push({
+                    left: el.style.left,
+                    top: el.style.top,
+                    width: el.style.width,
+                    height: el.style.height,
+                    text: el.value,
+                    containerId: 'pdfQuestionsViewer',
+                    scrollTop: pdfQuestionsViewer.scrollTop,
+                    scrollLeft: pdfQuestionsViewer.scrollLeft
+                });
+            });
+            
+            // Save highlights from LEFT section
+            highlights.filter(h => h.container.id === 'pdfTextViewer').forEach(highlight => {
                 annotations.highlights.push({
                     left: highlight.element.style.left,
                     top: highlight.element.style.top,
                     width: highlight.element.style.width,
                     height: highlight.element.style.height,
-                    containerId: highlight.container.id,
-                    scrollTop: highlight.container.scrollTop,
-                    scrollLeft: highlight.container.scrollLeft
+                    containerId: 'pdfTextViewer',
+                    scrollTop: pdfTextViewer.scrollTop,
+                    scrollLeft: pdfTextViewer.scrollLeft
+                });
+            });
+            
+            // Save highlights from RIGHT section
+            highlights.filter(h => h.container.id === 'pdfQuestionsViewer').forEach(highlight => {
+                annotations.highlights.push({
+                    left: highlight.element.style.left,
+                    top: highlight.element.style.top,
+                    width: highlight.element.style.width,
+                    height: highlight.element.style.height,
+                    containerId: 'pdfQuestionsViewer',
+                    scrollTop: pdfQuestionsViewer.scrollTop,
+                    scrollLeft: pdfQuestionsViewer.scrollLeft
                 });
             });
             
